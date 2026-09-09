@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Respira - Pare de fumar</title>
+
+  <!-- PWA: permite instalar o app no celular -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a1420">
+  <link rel="icon" type="image/png" sizes="192x192" href="assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Respira">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET E BASE ===== */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --bg-fundo: #0a1420;
+      --bg-card: #101f33;
+      --texto-principal: #f2f7fb;
+      --texto-medio: #a9bdd4;
+      --texto-fraco: #7c93ad;
+      --cor-primaria: #3b82f6;
+      --cor-secundaria: #4fd1f0;
+      --cor-destaque: #f59e0b;
+    }
+    html, body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-fundo);
+      color: var(--texto-principal);
+      min-height: 100vh;
+      background-size: cover;
+      background-position: top center;
+      transition: background 0.5s;
+    }
+    #root { max-width:480px; margin:0 auto; padding:20px 18px 28px; }
+    
+    /* ===== TODAS AS TELAS INICIAM OCULTAS ===== */
+    .screen {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      animation: none;
+      transition: none;
+    }
+    .screen.active {
+      display: block !important;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      animation: fade .3s ease;
+    }
+    #screen-login.active {
+      display: flex !important;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 70vh;
+    }
+    #screen-loading.active {
+      display: block !important;
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @keyframes fade { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
+    
+    h1 { font-size:26px; font-weight:700; color:var(--cor-secundaria); }
+    h2 { font-size:20px; font-weight:600; margin-bottom:12px; }
+    p { font-size:15px; line-height:1.6; color:var(--texto-medio); margin-bottom:12px; }
+    .subtitle { font-size:14px; color:var(--texto-medio); margin-bottom:20px; }
+    input, select, textarea {
+      width:100%; padding:14px 16px; border:1px solid rgba(255,255,255,0.15); border-radius:16px;
+      font-size:16px; background:var(--bg-card); color:var(--texto-principal);
+      transition:border .2s; margin-bottom:12px; outline:none;
+    }
+    input:focus, select:focus, textarea:focus { border-color:var(--cor-secundaria); }
+    label { font-size:14px; font-weight:500; color:var(--texto-medio); display:block; margin-bottom:4px; }
+    .btn {
+      width:100%; padding:15px; border:none; border-radius:16px; font-size:16.5px; font-weight:600;
+      cursor:pointer; transition:all .2s; margin-bottom:10px;
+      background:var(--bg-card); color:var(--texto-principal);
+    }
+    .btn-primary { background:var(--cor-primaria); color:white; }
+    .btn-primary:hover { background:#2f6fe0; }
+    .btn-success { background:#22c55e; color:white; }
+    .btn-success:hover { background:#16a34a; }
+    .btn-danger { background:#ef4444; color:white; }
+    .btn-danger:hover { background:#dc2626; }
+    .btn-outline { background:var(--bg-card); border:1px solid rgba(255,255,255,0.2); }
+    .btn-outline:hover { background:#16283e; }
+    .btn-sos { background:var(--cor-destaque); color:white; font-size:20px; padding:18px; border-radius:50px; box-shadow:0 8px 24px rgba(245,158,11,0.35); }
+    .btn-sos:hover { background:#d97706; transform:scale(1.02); }
+    .btn-sm { padding:11px 16px; font-size:14px; width:auto; display:inline-block; }
+    .btn-danger-sos { background:#dc2626; color:white; font-size:20px; padding:18px; border-radius:50px; box-shadow:0 8px 24px rgba(220,38,38,0.4); }
+    .btn-danger-sos:hover { background:#b91c1c; transform:scale(1.02); }
+    .card { background:var(--bg-card); border-radius:20px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.08); cursor:pointer; transition:all .2s; }
+    .card:hover { background:#152740; }
+    .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .stat-number { font-size:30px; font-weight:700; color:var(--cor-secundaria); }
+    .stat-label { font-size:13px; color:var(--texto-medio); }
+    .chip-group { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip { padding:8px 16px; border-radius:50px; border:1px solid rgba(255,255,255,0.18); background:var(--bg-card); color:var(--texto-medio); font-size:14px; cursor:pointer; user-select:none; }
+    .chip.selected { background:var(--cor-primaria); color:white; border-color:var(--cor-primaria); }
+    .app-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .app-header h1 { font-size:24px; display:flex; align-items:center; gap:8px; }
+    .user-email { font-size:14px; color:var(--texto-medio); display:block; margin-top:2px; }
+    .logout-btn { background:none; border:none; color:var(--cor-secundaria); font-size:14px; cursor:pointer; }
+    .logout-btn:hover { color:#ef4444; }
+    .config-btn { background:none; border:none; color:var(--texto-medio); font-size:20px; cursor:pointer; margin-left:8px; }
+    .config-btn:hover { color:var(--cor-secundaria); transform:rotate(30deg); transition:.3s; }
+    .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); justify-content:center; align-items:center; z-index:999; }
+    .overlay.active { display:flex; }
+    .overlay-content { background:var(--bg-card); border:1px solid rgba(255,255,255,0.12); border-radius:32px; padding:32px 24px; max-width:400px; width:90%; text-align:center; }
+    .overlay-content .btn-group { display:flex; gap:12px; margin-top:16px; }
+    .overlay-content .btn-group .btn { flex:1; margin-bottom:0; }
+    .audio-upload { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
+    .audio-upload .btn { flex:1; min-width:80px; margin-bottom:0; }
+    .audio-upload input[type="file"] { display:none; }
+    .plan-badge { background:rgba(15,30,46,0.9); color:var(--texto-principal); border:1px solid rgba(255,255,255,0.15); padding:5px 12px; border-radius:50px; font-size:12px; display:inline-block; margin-top:4px; }
+    .breath-circle { width:120px; height:120px; border-radius:50%; background:var(--cor-primaria); margin:20px auto; display:flex; align-items:center; justify-content:center; color:white; font-size:22px; font-weight:600; transition:all 0.8s ease; }
+    .subapp-tela { display:none; }
+    .subapp-tela.active { display:block; }
+    .variacao-btn { display:block; width:100%; margin:8px 0; padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.18); background:var(--bg-card); color:var(--texto-principal); font-size:16px; cursor:pointer; }
+    .variacao-btn:hover { border-color:var(--cor-secundaria); }
+    .foto-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
+    .foto-thumb { width:100%; aspect-ratio:1/1; border-radius:16px; background:#1a2a40; border:2px dashed rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--texto-fraco); cursor:pointer; overflow:hidden; background-size:cover; background-position:center; }
+    .foto-thumb img { width:100%; height:100%; object-fit:cover; }
+    .foto-thumb .remove { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.7); border-radius:50%; width:20px; height:20px; font-size:12px; color:white; border:none; cursor:pointer; }
+    .respirar-fases { display:flex; gap:12px; justify-content:center; margin:16px 0; }
+    .respirar-fases span { padding:6px 16px; border-radius:30px; background:rgba(255,255,255,0.08); font-size:14px; }
+    .respirar-fases .ativo { background:var(--cor-primaria); color:white; }
+    .spinner { width:48px; height:48px; border:6px solid rgba(255,255,255,0.12); border-top:6px solid var(--cor-secundaria); border-radius:50%; animation:spin 1s linear infinite; margin:20px auto; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @keyframes pisca { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .pisca { animation:pisca 0.8s infinite; }
+    #seletor-temas-mini button { border-radius:12px !important; cursor:pointer; transition:0.2s; text-shadow:0 2px 4px rgba(0,0,0,0.5); }
+    #seletor-temas-mini button:hover { transform:scale(1.05); }
+  </style>
+</head>
+<body>
+<div id="root">
+  <!-- LOADING (visível inicialmente) -->
+  <div id="screen-loading" class="screen active">
+    <div class="spinner"></div>
+    <p style="text-align:center; color:var(--texto-fraco);">Carregando...</p>
+  </div>
+
+  <!-- LOGIN (oculta) -->
+  <div id="screen-login" class="screen">
+    <h1 style="text-align:center;">🚭 Respira</h1>
+    <p style="text-align:center; color:var(--texto-medio);">Apoio diário para parar de fumar</p>
+    <div style="width:100%; margin-top:24px;">
+      <label>E-mail</label>
+      <div style="position:relative;">
+        <input type="email" id="login-email" placeholder="seu@email.com" />
+      </div>
+      <label>Senha</label>
+      <div style="position:relative;">
+        <input type="password" id="login-password" placeholder="mínimo 6 caracteres" />
+        <span style="position:absolute; right:16px; top:50%; transform:translateY(-50%); cursor:pointer; color:var(--texto-fraco);" id="toggle-login-password">👁️</span>
+      </div>
+      <button class="btn btn-primary" id="btn-login">Entrar</button>
+      <button class="btn btn-outline" id="btn-register">Criar conta gratuita</button>
+      <p id="login-message" style="color:#ef4444; font-size:14px; text-align:center; margin-top:8px;"></p>
+    </div>
+  </div>
+
+  <!-- ONBOARDING (oculta) -->
+  <div id="screen-onboarding" class="screen">
+    <div class="app-header" style="border-bottom:none; margin-bottom:8px;">
+      <h2 style="font-size:20px;">👋 Vamos começar</h2>
+      <button class="btn btn-sm btn-outline" id="btn-onboarding-sair" style="width:auto; padding:6px 16px; color:#ef4444; border-color:#ef4444;">Sair</button>
+    </div>
+    <p class="subtitle">Escolha seu tema primeiro</p>
+    <div id="onboarding-tema" style="margin-bottom:16px;">
+      <div id="seletor-temas-mini" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
+      <!-- AJUSTE REMOVIDO -->
+    </div>
+    <div id="onboarding-perguntas">
+      <label>Quantos cigarros por dia?</label>
+      <select id="onboard-cigarettes"><option value="5">Menos de 5</option><option value="10" selected>6 a 10</option><option value="15">11 a 20</option><option value="25">Mais de 20</option></select>
+      <label>Tempo até o primeiro cigarro</label>
+      <select id="onboard-time"><option value="5">Menos de 5 min</option><option value="15" selected>6 a 30 min</option><option value="45">31 a 60 min</option><option value="90">Mais de 60 min</option></select>
+      <label>Há quantos anos fuma?</label>
+      <select id="onboard-years"><option value="2">Menos de 2 anos</option><option value="5" selected>2 a 5 anos</option><option value="10">6 a 10 anos</option><option value="15">Mais de 10 anos</option></select>
+      <label>💰 Custo da carteira (R$)</label>
+      <input type="number" id="onboard-cost" placeholder="Ex: 12,00" step="0.01" min="0" value="12.00" />
+      <label>Gatilhos (até 4)</label>
+      <div class="chip-group" id="trigger-group">
+        <span class="chip" data-value="cafe">☕ Café</span><span class="chip" data-value="alcool">🍺 Álcool</span>
+        <span class="chip" data-value="estresse">😰 Estresse</span><span class="chip" data-value="trabalho">💼 Trabalho</span>
+        <span class="chip" data-value="direcao">🚗 Direção</span><span class="chip" data-value="refeicao">🍽️ Refeições</span>
+        <span class="chip" data-value="social">👥 Amigos</span><span class="chip" data-value="dor">🤕 Dor</span>
+        <span class="chip" data-value="tedio">😐 Tédio</span><span class="chip" data-value="ansiedade">😥 Ansiedade</span>
+        <span class="chip" data-value="outro">🔄 Outro</span>
+      </div>
+      <label>Quando quer parar?</label>
+      <select id="onboard-quit-date"><option value="today">Hoje</option><option value="7" selected>Em 7 dias</option><option value="14">Em 14 dias</option><option value="reduce">Reduzir gradual</option></select>
+    </div>
+    <div id="onboarding-audio">
+      <label>🎤 Áudio motivacional (opcional)</label>
+      <div class="audio-upload">
+        <button class="btn btn-sm btn-outline" id="btn-start-recording">🔴 Gravar</button>
+        <button class="btn btn-sm btn-outline" id="btn-stop-recording" disabled>⏹ Parar</button>
+        <button class="btn btn-sm btn-outline" id="btn-play-recorded" disabled>▶ Ouvir</button>
+        <button class="btn btn-sm btn-outline" id="btn-upload-audio">📤 Upload</button>
+        <button class="btn btn-sm btn-outline" id="btn-discard-audio" style="color:#ef4444; border-color:#ef4444;">🗑️ Descartar</button>
+        <input type="file" id="onboard-audio" accept="audio/*" />
+      </div>
+    </div>
+    <div id="onboarding-fotos">
+      <label>📸 Fotos motivacionais (opcional - até 4)</label>
+      <div class="foto-grid" id="foto-grid">
+        <div class="foto-thumb" data-index="0">+</div>
+        <div class="foto-thumb" data-index="1">+</div>
+        <div class="foto-thumb" data-index="2">+</div>
+        <div class="foto-thumb" data-index="3">+</div>
+      </div>
+      <input type="file" id="foto-input" accept="image/*" multiple style="display:none;" />
+    </div>
+    <div id="onboarding-frases">
+      <label>💬 Frases motivacionais (opcional - até 4)</label>
+      <input type="text" id="frase1" placeholder="Frase 1" maxlength="100" />
+      <input type="text" id="frase2" placeholder="Frase 2" maxlength="100" />
+      <input type="text" id="frase3" placeholder="Frase 3" maxlength="100" />
+      <input type="text" id="frase4" placeholder="Frase 4" maxlength="100" />
+    </div>
+    <button class="btn btn-primary" id="btn-finish-onboarding">Gerar meu plano</button>
+    <p id="onboarding-message" style="color:#ef4444; font-size:14px; text-align:center; margin-top:8px;"></p>
+  </div>
+
+  <!-- DASHBOARD (oculta) -->
+  <div id="screen-dashboard" class="screen">
+    <div class="app-header">
+      <div>
+        <h1>🚭 Respira</h1>
+        <span class="user-email" id="user-email"></span>
+        <span class="plan-badge" id="plan-badge">Plano: Ativo</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:4px;">
+        <button class="config-btn" id="btn-config" title="Editar perfil">⚙️</button>
+        <button class="logout-btn" id="btn-logout">Sair</button>
+      </div>
+    </div>
+    <div id="install-banner" style="display:none; align-items:center; justify-content:space-between; gap:10px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:12px; padding:10px 14px; margin-bottom:14px;">
+      <span style="font-size:14px;">📲 Instale o Respira no seu celular</span>
+      <div style="display:flex; gap:6px; align-items:center;">
+        <button id="btn-install-app" class="btn btn-primary btn-sm" style="padding:8px 14px;">Instalar</button>
+        <button id="btn-dismiss-install" title="Fechar" style="background:none; border:none; color:var(--texto-medio); font-size:18px; cursor:pointer; padding:4px;">✕</button>
+      </div>
+    </div>
+    <div class="card-grid">
+      <div class="card"><div class="stat-number" id="dash-days">0</div><div class="stat-label">Dias sem fumar</div></div>
+      <div class="card"><div class="stat-number" id="dash-money">R$ 0</div><div class="stat-label">Economizados</div></div>
+    </div>
+    <div class="card"><div class="stat-number" id="dash-cigarettes-avoided">0</div><div class="stat-label">Cigarros não fumados</div></div>
+    <div style="display:flex; flex-direction:column; gap:12px; margin:16px 0;">
+      <button class="btn btn-sos" id="btn-sos-strategies">🔥 Estou com vontade</button>
+      <button class="btn btn-danger-sos" id="btn-sos-emergencia">🆘 SOS - Respire agora</button>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-primary btn-sm" id="btn-register-cigarette" style="flex:1;">🚬 Fumei</button>
+      <button class="btn btn-success btn-sm" id="btn-register-craving" style="flex:1;">💪 Venci fissura</button>
+      <button class="btn btn-outline btn-sm" id="btn-relapse" style="flex:1; border-color:#ef4444; color:#ef4444;">⚠️ Recaída</button>
+    </div>
+    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm" id="btn-go-lessons">📚 Lições</button>
+      <button class="btn btn-outline btn-sm" id="btn-go-history">📊 Histórico</button>
+      <button class="btn btn-outline btn-sm" id="btn-play-motivational">🎧 Áudio</button>
+    </div>
+  </div>
+
+  <!-- ESTRATÉGIAS (oculta) -->
+  <div id="screen-strategies" class="screen">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🧠 Estratégias</h2>
+      <button class="logout-btn" id="btn-strategies-back">Voltar</button>
+    </div>
+    <div id="strategies-rodizio" style="display:flex; flex-direction:column; align-items:center; margin:12px 0; background:var(--bg-card); border-radius:20px; padding:16px; border:1px solid rgba(255,255,255,0.08);">
+      <div id="strategies-foto" style="width:100%; max-width:200px; aspect-ratio:1/1; border-radius:20px; background:#1a2a40; background-size:cover; background-position:center; margin-bottom:8px;"></div>
+      <p id="strategies-frase" style="font-size:16px; font-style:italic; color:var(--texto-medio); text-align:center;">"Sua frase motivacional"</p>
+    </div>
+    <p style="font-size:14px; color:var(--texto-fraco); margin-bottom:12px;">Clique em uma estratégia</p>
+    <div id="strategies-list"></div>
+  </div>
+
+  <!-- SUBAPP ÁGUA (oculta) -->
+  <div id="screen-agua" class="screen">
+    <div class="app-header">
+      <h2 style="font-size:18px;">💧 Beber Água</h2>
+      <button class="logout-btn" id="btn-agua-sair">Voltar</button>
+    </div>
+    <div id="agua-tela-abertura" class="subapp-tela active">
+      <p>A fissura dura ~5 min. Vamos beber água.</p>
+      <button class="btn btn-primary" onclick="window.aguaMostrarVariacao()">Começar</button>
+    </div>
+    <div id="agua-tela-variacao" class="subapp-tela">
+      <h3>Que água você tem?</h3>
+      <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('agua_gelada')">Água gelada</button>
+      <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('agua_temperatura_ambiente')">Temperatura ambiente</button>
+      <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('agua_com_gas')">Água com gás</button>
+      <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('cha')">Chá</button>
+    </div>
+    <div id="agua-tela-preparacao" class="subapp-tela">
+      <p id="agua-texto-preparacao"></p>
+      <button class="btn btn-primary" onclick="window.aguaIniciarGoles()">Pronto(a)</button>
+    </div>
+    <div id="agua-tela-goles" class="subapp-tela">
+      <p id="agua-texto-gole"></p>
+      <div id="agua-respiracao" style="display:none; text-align:center; margin:16px 0;">
+        <p id="agua-respiracao-texto">Inspire...</p>
+        <div class="breath-circle" id="agua-breath-circle" style="width:100px;height:100px;margin:12px auto;">🌬️</div>
+        <button class="btn btn-success btn-sm" id="agua-continuar-respiracao" style="display:none;">Continuar</button>
+      </div>
+      <button class="btn btn-primary" id="agua-botao-proximo" style="display:none;">Próximo gole</button>
+      <button class="btn btn-outline btn-sm" onclick="window.aguaPularGole()">Pular gole</button>
+    </div>
+    <div id="agua-tela-registro" class="subapp-tela">
+      <h3>Como está a fissura agora?</h3>
+      <button class="btn btn-danger" onclick="window.aguaRegistrarFissura('forte')">Forte</button>
+      <button class="btn" style="background:#f59e0b;color:white;" onclick="window.aguaRegistrarFissura('moderada')">Moderada</button>
+      <button class="btn btn-outline" onclick="window.aguaRegistrarFissura('fraca')">Fraca</button>
+      <button class="btn btn-success" onclick="window.aguaRegistrarFissura('passou')">Passou</button>
+    </div>
+    <div id="agua-tela-encerramento" class="subapp-tela">
+      <p id="agua-mensagem-encerramento"></p>
+      <button class="btn btn-primary" onclick="window.aguaRepetir()">Repetir</button>
+      <button class="btn btn-outline" onclick="window.aguaSairParaEstrategias()">Voltar às estratégias</button>
+    </div>
+  </div>
+
+  <!-- RESPIRAÇÃO (oculta) -->
+  <div id="screen-respiracao" class="screen">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🧘 Respire comigo</h2>
+      <button class="logout-btn" id="btn-respiracao-sair">Sair</button>
+    </div>
+    <div style="text-align:center;">
+      <p id="respiracao-texto" style="font-size:20px; font-weight:600; color:var(--cor-secundaria);">Inspire...</p>
+      <div class="breath-circle" id="respiracao-circle" style="width:140px;height:140px;margin:20px auto; transition:transform 1s ease, background 1s ease;">🌬️</div>
+      <div class="respirar-fases" id="respiracao-fases">
+        <span class="ativo">Inspirar</span>
+        <span>Segurar</span>
+        <span>Expirar</span>
+      </div>
+      <p id="respiracao-ciclo" style="font-size:14px; color:var(--texto-fraco);">Ciclo 1 de 3</p>
+      <div style="display:flex; gap:12px; justify-content:center; margin:16px 0;">
+        <button class="btn btn-success btn-sm" id="btn-respiracao-consegui" style="display:none;">✅ Consegui!</button>
+        <button class="btn btn-danger btn-sm" id="btn-respiracao-falhei" style="display:none;">❌ Não consegui</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTROS (Fumei, Venci fissura, Recaída) -->
+  <div id="screen-register-cigarette" class="screen">
+    <h2>🚬 Registrar cigarro</h2>
+    <label>Contexto</label><input type="text" id="cig-context" placeholder="Ex: café, estresse..." />
+    <label>Vontade (0-10)</label><input type="number" id="cig-craving" min="0" max="10" value="7" />
+    <label>Emoção</label><input type="text" id="cig-emotion" placeholder="Ansiedade, tédio..." />
+    <button class="btn btn-primary" id="btn-save-cigarette">Salvar</button>
+    <button class="btn btn-outline" id="btn-cancel-cigarette">Cancelar</button>
+  </div>
+  <div id="screen-register-craving" class="screen">
+    <h2>💪 Venci fissura</h2>
+    <label>Gatilho</label><input type="text" id="craving-trigger" />
+    <label>Intensidade (0-10)</label><input type="number" id="craving-intensity" min="0" max="10" value="6" />
+    <label>Estratégia</label>
+    <select id="craving-strategy">
+      <option value="agua">💧 Água</option><option value="caminhar">🚶 Caminhar</option>
+      <option value="apoio">📞 Apoio</option><option value="chiclete">🍬 Chiclete</option>
+      <option value="banho">🚿 Banho</option><option value="audio">🎧 Áudio</option>
+      <option value="sair">🚪 Sair</option><option value="respirar">🧘 Respirar</option>
+      <option value="adiar">⏳ Adiar</option><option value="alongar">🤸 Alongar</option>
+      <option value="motivo">💪 Motivo</option>
+    </select>
+    <button class="btn btn-success" id="btn-save-craving">Registrar</button>
+    <button class="btn btn-outline" id="btn-cancel-craving">Cancelar</button>
+  </div>
+  <div id="screen-relapse" class="screen">
+    <h2>⚠️ Recaída</h2>
+    <p>Um deslize não apaga seu progresso.</p>
+    <label>Local</label><input type="text" id="relapse-place" />
+    <label>Gatilho</label><input type="text" id="relapse-trigger" />
+    <label>Sentimento</label><input type="text" id="relapse-feeling" />
+    <label>O que faria diferente?</label><input type="text" id="relapse-learn" />
+    <button class="btn btn-primary" id="btn-save-relapse">Registrar</button>
+    <button class="btn btn-outline" id="btn-cancel-relapse">Voltar</button>
+  </div>
+
+  <!-- LIÇÕES E HISTÓRICO -->
+  <div id="screen-lessons" class="screen">
+    <h2>📚 Lições</h2>
+    <div id="lessons-list"></div>
+    <button class="btn btn-outline" id="btn-lessons-back">Voltar</button>
+  </div>
+  <div id="screen-history" class="screen">
+    <h2>📊 Histórico</h2>
+    <div id="history-content"><p>Carregando...</p></div>
+    <button class="btn btn-outline" id="btn-history-back">Voltar</button>
+  </div>
+
+  <!-- OVERLAY CONFIRMAÇÃO -->
+  <div class="overlay" id="confirmation-overlay">
+    <div class="overlay-content">
+      <h3 id="confirm-title">Usar estratégia?</h3>
+      <p id="confirm-description">Você usou <strong id="confirm-strategy-name"></strong> e venceu?</p>
+      <div class="btn-group">
+        <button class="btn btn-success" id="confirm-yes">Sim</button>
+        <button class="btn btn-danger" id="confirm-no">Não</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
+<!-- MAPA DE IMPORTAÇÃO E MÓDULO PRINCIPAL -->
+<script type="importmap">
+{
+  "imports": {
+    "./js/": "./js/"
+  }
+}
+</script>
+<script type="module" src="js/app.js"></script>
+<script>
+  // PWA: registra o Service Worker (cache do app shell + funcionamento offline)
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js').catch((e) => {
+        console.warn('Service Worker não registrado:', e);
+      });
+    });
+  }
+</script>
+</body>
+</html>
