@@ -40,7 +40,11 @@
       background-position: top center;
       transition: background 0.5s;
     }
-    #root { max-width:480px; margin:0 auto; padding:20px 18px 28px; }
+    #root {
+      max-width:480px; margin:0 auto; padding:20px 18px 28px;
+      display:flex; flex-direction:column;
+      min-height:100vh; min-height:100dvh;
+    }
     
     /* ===== TODAS AS TELAS INICIAM OCULTAS ===== */
     .screen {
@@ -75,9 +79,8 @@
     #screen-dashboard.active {
       display: flex !important;
       flex-direction: column;
-      min-height: calc(100vh - 48px);
-      min-height: calc(100dvh - 48px);
-      padding-bottom: 4px;
+      flex: 1 1 auto;
+      min-height: 0;
     }
 
     @keyframes fade { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
