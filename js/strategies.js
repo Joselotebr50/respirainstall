@@ -5,18 +5,21 @@ import { iniciarRespiracao } from './subapps/respiracao.js';
 import { iniciarAgua } from './subapps/agua.js';
 import { atualizarContador } from './dashboard.js';
 
+// Cada estratégia carrega os gatilhos (definidos no onboarding, #trigger-group)
+// que ela combate melhor. Usado só para REORDENAR a lista (nunca para esconder
+// estratégias) quando o perfil do usuário tem gatilhos salvos.
 const strategies = [
-  { id:'agua', label:'Beber água', emoji:'💧' },
-  { id:'caminhar', label:'Caminhar', emoji:'🚶' },
-  { id:'apoio', label:'Ligar para apoio', emoji:'📞' },
-  { id:'chiclete', label:'Mascar chiclete', emoji:'🍬' },
-  { id:'banho', label:'Tomar banho', emoji:'🚿' },
-  { id:'audio', label:'Ouvir áudio relaxante', emoji:'🎧' },
-  { id:'sair', label:'Sair do gatilho', emoji:'🚪' },
-  { id:'respirar', label:'Respiração guiada', emoji:'🧘' },
-  { id:'adiar', label:'Adiar por 5 min', emoji:'⏳' },
-  { id:'alongar', label:'Pausa ativa', emoji:'🤸' },
-  { id:'motivo', label:'Lembrar motivo', emoji:'💪' },
+  { id:'agua', label:'Beber água', emoji:'💧', triggers:['cafe', 'refeicao'] },
+  { id:'caminhar', label:'Caminhar', emoji:'🚶', triggers:['trabalho', 'tedio'] },
+  { id:'apoio', label:'Ligar para apoio', emoji:'📞', triggers:['social', 'ansiedade'] },
+  { id:'chiclete', label:'Mascar chiclete', emoji:'🍬', triggers:['cafe', 'refeicao', 'direcao'] },
+  { id:'banho', label:'Tomar banho', emoji:'🚿', triggers:['estresse', 'dor'] },
+  { id:'audio', label:'Ouvir áudio relaxante', emoji:'🎧', triggers:['estresse', 'ansiedade'] },
+  { id:'sair', label:'Sair do gatilho', emoji:'🚪', triggers:['alcool', 'social'] },
+  { id:'respirar', label:'Respiração guiada', emoji:'🧘', triggers:['estresse', 'ansiedade', 'dor'] },
+  { id:'adiar', label:'Adiar por 5 min', emoji:'⏳', triggers:['tedio', 'direcao', 'outro'] },
+  { id:'alongar', label:'Pausa ativa', emoji:'🤸', triggers:['trabalho', 'tedio'] },
+  { id:'motivo', label:'Lembrar motivo', emoji:'💪', triggers:['alcool', 'outro'] },
 ];
 window._strategies = strategies;
 
@@ -28,13 +31,41 @@ export function mostrarEstrategias(user, profile) {
   currentUserAtual = user;
   userProfileAtual = profile;
   const container = document.getElementById('strategies-list');
-  container.innerHTML = strategies.map(s =>
-    `<div class="card" data-strategy-id="${s.id}" style="display:flex; align-items:center; gap:12px;">
+
+  const gatilhosDoUsuario = profile?.triggers || [];
+  const temPersonalizacao = gatilhosDoUsuario.length > 0;
+
+  const recomendadas = [];
+  const outras = [];
+  strategies.forEach(s => {
+    const combate = s.triggers.some(t => gatilhosDoUsuario.includes(t));
+    if (temPersonalizacao && combate) {
+      recomendadas.push(s);
+    } else {
+      outras.push(s);
+    }
+  });
+
+  function renderCard(s, destacar) {
+    return `<div class="card" data-strategy-id="${s.id}" style="display:flex; align-items:center; gap:12px; ${destacar ? 'border:2px solid var(--cor-secundaria);' : ''}">
       <span style="font-size:24px;">${s.emoji}</span>
-      <span style="font-size:16px; font-weight:500;">${s.label}</span>
-    </div>`
-  ).join('');
-  
+      <span style="font-size:16px; font-weight:500; flex:1;">${s.label}</span>
+      ${destacar ? '<span style="font-size:11px; background:var(--cor-secundaria); color:#fff; padding:3px 8px; border-radius:10px; white-space:nowrap;">Recomendado</span>' : ''}
+    </div>`;
+  }
+
+  let html;
+  if (temPersonalizacao && recomendadas.length) {
+    html = `<p style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:var(--texto-medio); margin:12px 0 6px;">Recomendado pra você</p>`
+      + recomendadas.map(s => renderCard(s, true)).join('')
+      + `<p style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:var(--texto-medio); margin:16px 0 6px;">Outras estratégias</p>`
+      + outras.map(s => renderCard(s, false)).join('');
+  } else {
+    // Sem gatilhos salvos no perfil: comportamento idêntico ao original.
+    html = strategies.map(s => renderCard(s, false)).join('');
+  }
+  container.innerHTML = html;
+
   container.querySelectorAll('.card').forEach(card => {
     card.addEventListener('click', function() {
       const id = this.dataset.strategyId;
