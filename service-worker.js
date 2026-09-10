@@ -3,7 +3,7 @@
 // instantaneamente e funcionar mesmo com internet ruim/instável.
 // Atenção: sempre que os arquivos do app forem atualizados, mude o CACHE_VERSION
 // abaixo para forçar o navegador a buscar os arquivos novos.
-const CACHE_VERSION = 'respira-v4';
+const CACHE_VERSION = 'respira-v5';
 
 const APP_SHELL = [
   './',

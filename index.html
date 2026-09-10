@@ -81,6 +81,7 @@
       flex-direction: column;
       flex: 1 1 auto;
       min-height: 0;
+      gap: 10px;
     }
 
     @keyframes fade { 0%{opacity:0;transform:translateY(10px)} 100%{opacity:1;transform:translateY(0)} }
@@ -153,6 +154,7 @@
       -webkit-backdrop-filter: blur(16px) saturate(150%);
       border: 1px solid rgba(255,255,255,0.18);
       box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      margin-bottom: 0;
     }
     #screen-dashboard .card:hover {
       background: rgba(21,39,64,0.42);
@@ -355,7 +357,7 @@
         <button class="logout-btn" id="btn-logout">Sair</button>
       </div>
     </div>
-    <div id="install-banner" style="display:none; align-items:center; justify-content:space-between; gap:10px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:12px; padding:10px 14px; margin-bottom:14px;">
+    <div id="install-banner" style="display:none; align-items:center; justify-content:space-between; gap:10px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:12px; padding:10px 14px;">
       <span style="font-size:14px;">📲 Instale o Respira no seu celular</span>
       <div style="display:flex; gap:6px; align-items:center;">
         <button id="btn-install-app" class="btn btn-primary btn-sm" style="padding:8px 14px;">Instalar</button>
@@ -367,7 +369,7 @@
       <div class="card"><div class="stat-number" id="dash-money">R$ 0</div><div class="stat-label">Economizados</div></div>
     </div>
     <div class="card"><div class="stat-number" id="dash-cigarettes-avoided">0</div><div class="stat-label">Cigarros não fumados</div></div>
-    <div style="display:flex; flex-direction:column; gap:12px; margin:16px 0;">
+    <div style="display:flex; flex-direction:column; gap:10px;">
       <button class="btn btn-sos" id="btn-sos-strategies">🔥 Estou com vontade</button>
       <button class="btn btn-danger-sos" id="btn-sos-emergencia">🆘 SOS - Respire agora</button>
     </div>
@@ -376,7 +378,7 @@
       <button class="btn btn-success btn-sm" id="btn-register-craving" style="flex:1;">💪 Venci fissura</button>
       <button class="btn btn-outline btn-sm" id="btn-relapse" style="flex:1; border-color:#ef4444; color:#ef4444;">⚠️ Recaída</button>
     </div>
-    <div style="margin-top:16px; display:flex; gap:8px; flex-wrap:wrap;">
+    <div style="display:flex; gap:8px; flex-wrap:wrap;">
       <button class="btn btn-outline btn-sm" id="btn-go-lessons">📚 Lições</button>
       <button class="btn btn-outline btn-sm" id="btn-go-history">📊 Histórico</button>
       <button class="btn btn-outline btn-sm" id="btn-play-motivational">🎧 Áudio</button>
