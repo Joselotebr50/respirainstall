@@ -453,19 +453,17 @@
       <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('agua_com_gas')">Água com gás</button>
       <button class="variacao-btn" onclick="window.aguaSelecionarVariacao('cha')">Chá</button>
     </div>
-    <div id="agua-tela-preparacao" class="subapp-tela">
-      <p id="agua-texto-preparacao"></p>
-      <button class="btn btn-primary" onclick="window.aguaIniciarGoles()">Pronto(a)</button>
-    </div>
     <div id="agua-tela-goles" class="subapp-tela">
+      <p id="agua-progresso" style="font-size:13px; color:var(--texto-medio); margin-bottom:4px;"></p>
       <p id="agua-texto-gole"></p>
       <div id="agua-respiracao" style="display:none; text-align:center; margin:16px 0;">
         <p id="agua-respiracao-texto">Inspire...</p>
         <div class="breath-circle" id="agua-breath-circle" style="width:100px;height:100px;margin:12px auto;">🌬️</div>
         <button class="btn btn-success btn-sm" id="agua-continuar-respiracao" style="display:none;">Continuar</button>
+        <button class="btn btn-outline btn-sm" id="agua-pular-respiracao" style="display:none;">Pular respiração</button>
       </div>
       <button class="btn btn-primary" id="agua-botao-proximo" style="display:none;">Próximo gole</button>
-      <button class="btn btn-outline btn-sm" onclick="window.aguaPularGole()">Pular gole</button>
+      <button class="btn btn-outline btn-sm" id="agua-botao-pular" onclick="window.aguaPularGole()">Pular gole</button>
     </div>
     <div id="agua-tela-registro" class="subapp-tela">
       <h3>Como está a fissura agora?</h3>
