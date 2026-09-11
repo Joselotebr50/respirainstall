@@ -130,11 +130,48 @@
     .logout-btn:hover { color:#ef4444; }
     .config-btn { background:none; border:none; color:var(--texto-medio); font-size:20px; cursor:pointer; margin-left:8px; }
     .config-btn:hover { color:var(--cor-secundaria); transform:rotate(30deg); transition:.3s; }
-    .overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); justify-content:center; align-items:center; z-index:999; }
-    .overlay.active { display:flex; }
-    .overlay-content { background:var(--bg-card); border:1px solid rgba(255,255,255,0.12); border-radius:32px; padding:32px 24px; max-width:400px; width:90%; text-align:center; }
-    .overlay-content .btn-group { display:flex; gap:12px; margin-top:16px; }
-    .overlay-content .btn-group .btn { flex:1; margin-bottom:0; }
+    /* ===== TELAS DE ESTRATÉGIA (fundo temático + dica de execução) ===== */
+    .tela-estrategia { position:relative; overflow:hidden; margin:-20px -18px 0; padding:20px 18px 28px; min-height:100vh; min-height:100dvh; }
+    .tela-estrategia::before { content:''; position:absolute; font-size:260px; line-height:1; opacity:0.10; pointer-events:none; z-index:0; }
+    .tela-estrategia > * { position:relative; z-index:1; }
+    .estrategia-motivo-icone { font-size:64px; text-align:center; margin:28px 0 20px; animation:estrategiaPulso 2.2s ease-in-out infinite; }
+    @keyframes estrategiaPulso { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.12); } }
+    .estrategia-dica { background:var(--bg-card); border-radius:16px; padding:16px 18px; font-size:15px; line-height:1.6; margin-bottom:18px; border:1px solid rgba(255,255,255,0.08); }
+    .estrategia-frase-usuario { font-style:italic; text-align:center; color:var(--texto-medio); margin-bottom:28px; font-size:15px; }
+    .estrategia-confirmacao { display:flex; flex-direction:column; gap:12px; }
+
+    .tema-caminhar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 35%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-caminhar::before { content:'👣'; top:-30px; right:-40px; transform:rotate(18deg); }
+
+    .tema-apoio { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 32%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-apoio::before { content:'💬'; top:-20px; left:-40px; transform:rotate(-12deg); }
+
+    .tema-chiclete { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 30%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-chiclete::before { content:'🍬'; top:-40px; right:-30px; transform:rotate(20deg); }
+
+    .tema-banho { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 38%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-banho::before { content:'💧'; top:-30px; right:-20px; transform:rotate(8deg); }
+
+    .tema-audio { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 30%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-audio::before { content:'🎵'; bottom:-40px; left:-30px; transform:rotate(-15deg); }
+
+    .tema-sair { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-sair::before { content:'🚪'; top:-20px; right:-40px; transform:rotate(10deg); }
+
+    .tema-adiar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-adiar::before { content:'⏳'; bottom:-30px; right:-30px; transform:rotate(-10deg); }
+
+    .tema-alongar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-alongar::before { content:'🤸'; top:-30px; left:-30px; transform:rotate(-18deg); }
+
+    .tema-motivo { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 34%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-motivo::before { content:'💪'; bottom:-40px; right:-20px; transform:rotate(12deg); }
+
+    .tema-agua { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 42%, var(--bg-fundo)), var(--bg-fundo) 70%); }
+    .tema-agua::before { content:'💦'; top:-30px; left:-30px; transform:rotate(-10deg); }
+
+    .tema-respirar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 34%, var(--bg-fundo)), color-mix(in srgb, var(--cor-secundaria) 18%, var(--bg-fundo)) 70%); }
+    .tema-respirar::before { content:'🌬️'; bottom:-30px; left:-30px; transform:rotate(8deg); }
     .audio-upload { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
     .audio-upload .btn { flex:1; min-width:80px; margin-bottom:0; }
     .audio-upload input[type="file"] { display:none; }
@@ -400,7 +437,7 @@
   </div>
 
   <!-- SUBAPP ÁGUA (oculta) -->
-  <div id="screen-agua" class="screen">
+  <div id="screen-agua" class="screen tela-estrategia tema-agua">
     <div class="app-header">
       <h2 style="font-size:18px;">💧 Beber Água</h2>
       <button class="logout-btn" id="btn-agua-sair">Voltar</button>
@@ -445,7 +482,7 @@
   </div>
 
   <!-- RESPIRAÇÃO (oculta) -->
-  <div id="screen-respiracao" class="screen">
+  <div id="screen-respiracao" class="screen tela-estrategia tema-respirar">
     <div class="app-header">
       <h2 style="font-size:18px;">🧘 Respire comigo</h2>
       <button class="logout-btn" id="btn-respiracao-sair">Sair</button>
@@ -463,6 +500,133 @@
         <button class="btn btn-success btn-sm" id="btn-respiracao-consegui" style="display:none;">✅ Consegui!</button>
         <button class="btn btn-danger btn-sm" id="btn-respiracao-falhei" style="display:none;">❌ Não consegui</button>
       </div>
+    </div>
+  </div>
+
+  <!-- TELAS DE ESTRATÉGIA (uma por estratégia simples, fundo e conteúdo sob medida) -->
+  <div id="screen-estrategia-caminhar" class="screen tela-estrategia tema-caminhar">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🚶 Caminhar</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🚶</div>
+    <p class="estrategia-dica">Levante e caminhe por pelo menos 2 minutos, de preferência em um espaço aberto ou ao ar livre. O movimento ajuda a queimar a adrenalina da fissura e muda o cenário ao seu redor.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="caminhar">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="caminhar">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="caminhar">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-apoio" class="screen tela-estrategia tema-apoio">
+    <div class="app-header">
+      <h2 style="font-size:18px;">📞 Ligar para apoio</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">📞</div>
+    <p class="estrategia-dica">Ligue ou mande mensagem agora para alguém de confiança. Só o ato de contar o que você está sentindo já ajuda a reduzir a intensidade da fissura.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="apoio">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="apoio">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="apoio">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-chiclete" class="screen tela-estrategia tema-chiclete">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🍬 Mascar chiclete</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🍬</div>
+    <p class="estrategia-dica">Pegue um chiclete, de preferência sem açúcar, e mastigue devagar por pelo menos 1 minuto. Ocupar a boca com um movimento repetitivo ajuda a reduzir a vontade de fumar.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="chiclete">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="chiclete">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="chiclete">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-banho" class="screen tela-estrategia tema-banho">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🚿 Tomar banho</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🚿</div>
+    <p class="estrategia-dica">Vá até o banheiro e tome um banho, mesmo que rápido. A troca de temperatura e o ritual ajudam a resetar a mente e o corpo, cortando o pico da fissura.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="banho">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="banho">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="banho">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-audio" class="screen tela-estrategia tema-audio">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🎧 Áudio relaxante</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🎧</div>
+    <p class="estrategia-dica">Coloque fones de ouvido e ouça uma música calma por alguns minutos. Se estiver em um lugar seguro, feche os olhos e respire fundo enquanto ouve.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="audio">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="audio">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="audio">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-sair" class="screen tela-estrategia tema-sair">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🚪 Sair do gatilho</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🚪</div>
+    <p class="estrategia-dica">Se for possível, saia do ambiente ou da situação que está gerando a vontade agora. Mudar de lugar corta o gatilho pela raiz.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="sair">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="sair">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="sair">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-adiar" class="screen tela-estrategia tema-adiar">
+    <div class="app-header">
+      <h2 style="font-size:18px;">⏳ Adiar por 5 min</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">⏳</div>
+    <p class="estrategia-dica">A fissura raramente dura mais que alguns minutos. Olhe para o relógio e prometa a si mesmo esperar 5 minutos antes de decidir qualquer coisa.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="adiar">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="adiar">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="adiar">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-alongar" class="screen tela-estrategia tema-alongar">
+    <div class="app-header">
+      <h2 style="font-size:18px;">🤸 Pausa ativa</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">🤸</div>
+    <p class="estrategia-dica">Levante-se e faça um alongamento rápido: braços, pescoço e costas. Movimentar o corpo ajuda a dissipar a tensão que alimenta a fissura.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="alongar">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="alongar">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="alongar">❌ Acabei fumando</button>
+    </div>
+  </div>
+
+  <div id="screen-estrategia-motivo" class="screen tela-estrategia tema-motivo">
+    <div class="app-header">
+      <h2 style="font-size:18px;">💪 Lembrar motivo</h2>
+      <button class="logout-btn btn-estrategia-voltar">Voltar</button>
+    </div>
+    <div class="estrategia-motivo-icone">💪</div>
+    <p class="estrategia-dica">Pense (ou releia) no motivo mais forte que te fez decidir parar de fumar. Lembre por quem ou pelo que você está fazendo isso.</p>
+    <p class="estrategia-frase-usuario" data-strategy-id="motivo">"Sua frase motivacional"</p>
+    <div class="estrategia-confirmacao">
+      <button class="btn btn-success estrategia-btn-venceu" data-strategy-id="motivo">✅ Resisti à fissura</button>
+      <button class="btn btn-danger estrategia-btn-fumou" data-strategy-id="motivo">❌ Acabei fumando</button>
     </div>
   </div>
 
@@ -514,17 +678,7 @@
     <button class="btn btn-outline" id="btn-history-back">Voltar</button>
   </div>
 
-  <!-- OVERLAY CONFIRMAÇÃO -->
-  <div class="overlay" id="confirmation-overlay">
-    <div class="overlay-content">
-      <h3 id="confirm-title">Usar estratégia?</h3>
-      <p id="confirm-description">Você usou <strong id="confirm-strategy-name"></strong> e venceu?</p>
-      <div class="btn-group">
-        <button class="btn btn-success" id="confirm-yes">Sim</button>
-        <button class="btn btn-danger" id="confirm-no">Não</button>
-      </div>
-    </div>
-  </div>
+  <!-- (overlay antigo de confirmação removido — substituído pelas telas de estratégia dedicadas) -->
 </div>
 
 <!-- FIREBASE SDK -->
