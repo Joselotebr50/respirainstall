@@ -10,6 +10,7 @@ let aguaAtividadeId = null;
 let aguaVariacao = null;
 let aguaGoleAtual = 0;
 let aguaRespiracaoInterval = null;
+let aguaEncerramentoTimeout = null;
 
 const aguaInstrucoes = {
   agua_gelada: [
@@ -42,6 +43,7 @@ export function iniciarAgua(user, profile) {
   aguaVariacao = null;
   aguaGoleAtual = 0;
   if (aguaRespiracaoInterval) clearInterval(aguaRespiracaoInterval);
+  if (aguaEncerramentoTimeout) { clearTimeout(aguaEncerramentoTimeout); aguaEncerramentoTimeout = null; }
   navigateTo('screen-agua');
   mostrarEtapa('agua-tela-abertura');
   criarSessaoAtividade();
@@ -75,16 +77,10 @@ window.aguaMostrarVariacao = aguaMostrarVariacao;
 
 export function aguaSelecionarVariacao(variacao) {
   aguaVariacao = variacao;
-  document.getElementById('agua-texto-preparacao').textContent = aguaInstrucoes[variacao][0];
-  mostrarEtapa('agua-tela-preparacao');
-}
-window.aguaSelecionarVariacao = aguaSelecionarVariacao;
-
-export function aguaIniciarGoles() {
   aguaGoleAtual = 1;
   mostrarGole();
 }
-window.aguaIniciarGoles = aguaIniciarGoles;
+window.aguaSelecionarVariacao = aguaSelecionarVariacao;
 
 function mostrarGole() {
   if (aguaGoleAtual > 3) {
@@ -92,6 +88,7 @@ function mostrarGole() {
     return;
   }
   const texto = aguaInstrucoes[aguaVariacao][aguaGoleAtual - 1];
+  document.getElementById('agua-progresso').textContent = `Gole ${aguaGoleAtual} de 3`;
   document.getElementById('agua-texto-gole').textContent = texto;
   document.getElementById('agua-respiracao').style.display = 'none';
   document.getElementById('agua-botao-proximo').style.display = 'block';
@@ -102,11 +99,16 @@ function mostrarGole() {
 
 function iniciarRespiracaoEntreGoles() {
   document.getElementById('agua-botao-proximo').style.display = 'none';
+  document.getElementById('agua-botao-pular').style.display = 'none';
   const respDiv = document.getElementById('agua-respiracao');
   respDiv.style.display = 'block';
   const circle = document.getElementById('agua-breath-circle');
   const texto = document.getElementById('agua-respiracao-texto');
-  
+  const btnContinuar = document.getElementById('agua-continuar-respiracao');
+  const btnPularResp = document.getElementById('agua-pular-respiracao');
+  btnContinuar.style.display = 'none';
+  btnPularResp.style.display = 'inline-block';
+
   const fases = [
     { label: 'Inspire...', cor: '#3b82f6', escala: 1.3 },
     { label: 'Segure...', cor: '#8b5cf6', escala: 1.3 },
@@ -114,7 +116,18 @@ function iniciarRespiracaoEntreGoles() {
   ];
   let faseIdx = 0;
   let ciclos = 0;
-  
+
+  function avancarProximoGole() {
+    if (aguaRespiracaoInterval) { clearInterval(aguaRespiracaoInterval); aguaRespiracaoInterval = null; }
+    btnContinuar.style.display = 'none';
+    btnPularResp.style.display = 'none';
+    respDiv.style.display = 'none';
+    document.getElementById('agua-botao-pular').style.display = 'inline-block';
+    aguaGoleAtual++;
+    mostrarGole();
+  }
+  btnPularResp.onclick = avancarProximoGole;
+
   if (aguaRespiracaoInterval) clearInterval(aguaRespiracaoInterval);
   aguaRespiracaoInterval = setInterval(() => {
     const fase = fases[faseIdx];
@@ -125,21 +138,15 @@ function iniciarRespiracaoEntreGoles() {
     if (faseIdx >= fases.length) {
       faseIdx = 0;
       ciclos++;
-      if (ciclos >= 3) {
+      if (ciclos >= 1) {
         clearInterval(aguaRespiracaoInterval);
         aguaRespiracaoInterval = null;
         texto.textContent = '✅ Respiração concluída!';
         circle.style.background = '#22c55e';
         circle.style.transform = 'scale(1)';
-        const continuarBtn = document.createElement('button');
-        continuarBtn.className = 'btn btn-primary';
-        continuarBtn.textContent = 'Continuar';
-        continuarBtn.onclick = () => {
-          respDiv.style.display = 'none';
-          aguaGoleAtual++;
-          mostrarGole();
-        };
-        respDiv.appendChild(continuarBtn);
+        btnPularResp.style.display = 'none';
+        btnContinuar.style.display = 'inline-block';
+        btnContinuar.onclick = avancarProximoGole;
       }
     }
   }, 2000);
@@ -158,7 +165,27 @@ export async function aguaRegistrarFissura(intensidade) {
   if (aguaUser) {
     await atualizarContador(aguaUser.uid);
   }
-  const mensagem = intensidade === 'passou' || intensidade === 'fraca'
+
+  const botoesEncerramento = document.querySelectorAll('#agua-tela-encerramento button');
+
+  if (intensidade === 'passou') {
+    // Fissura resolvida: mostra a mensagem rapidamente e vai direto pro dashboard,
+    // sem exigir mais um clique do usuário.
+    document.getElementById('agua-mensagem-encerramento').textContent = 'Você cuidou de si. A fissura perde força.';
+    botoesEncerramento.forEach(btn => { btn.style.display = 'none'; });
+    mostrarEtapa('agua-tela-encerramento');
+    if (aguaEncerramentoTimeout) clearTimeout(aguaEncerramentoTimeout);
+    aguaEncerramentoTimeout = setTimeout(() => {
+      aguaEncerramentoTimeout = null;
+      navigateTo('screen-dashboard');
+    }, 2000);
+    return;
+  }
+
+  // Demais intensidades: continuam mostrando a tela de encerramento normalmente,
+  // com opção de repetir ou voltar às estratégias.
+  botoesEncerramento.forEach(btn => { btn.style.display = ''; });
+  const mensagem = intensidade === 'fraca'
     ? 'Você cuidou de si. A fissura perde força.'
     : 'Que tal tentar outra atividade?';
   document.getElementById('agua-mensagem-encerramento').textContent = mensagem;
@@ -217,4 +244,8 @@ window.aguaSairParaEstrategias = aguaSairParaEstrategias;
 
 export function sairAgua() {
   if (aguaRespiracaoInterval) clearInterval(aguaRespiracaoInterval);
+  if (aguaEncerramentoTimeout) {
+    clearTimeout(aguaEncerramentoTimeout);
+    aguaEncerramentoTimeout = null;
+  }
 }
