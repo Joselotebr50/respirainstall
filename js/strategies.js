@@ -5,18 +5,21 @@ import { iniciarRespiracao } from './subapps/respiracao.js';
 import { iniciarAgua } from './subapps/agua.js';
 import { atualizarContador } from './dashboard.js';
 
+// Cada estratégia carrega os gatilhos (definidos no onboarding, #trigger-group)
+// que ela combate melhor. Usado só para REORDENAR a lista (nunca para esconder
+// estratégias) quando o perfil do usuário tem gatilhos salvos.
 const strategies = [
-  { id:'agua', label:'Beber água', emoji:'💧' },
-  { id:'caminhar', label:'Caminhar', emoji:'🚶' },
-  { id:'apoio', label:'Ligar para apoio', emoji:'📞' },
-  { id:'chiclete', label:'Mascar chiclete', emoji:'🍬' },
-  { id:'banho', label:'Tomar banho', emoji:'🚿' },
-  { id:'audio', label:'Ouvir áudio relaxante', emoji:'🎧' },
-  { id:'sair', label:'Sair do gatilho', emoji:'🚪' },
-  { id:'respirar', label:'Respiração guiada', emoji:'🧘' },
-  { id:'adiar', label:'Adiar por 5 min', emoji:'⏳' },
-  { id:'alongar', label:'Pausa ativa', emoji:'🤸' },
-  { id:'motivo', label:'Lembrar motivo', emoji:'💪' },
+  { id:'agua', label:'Beber água', emoji:'💧', triggers:['cafe', 'refeicao'] },
+  { id:'caminhar', label:'Caminhar', emoji:'🚶', triggers:['trabalho', 'tedio'] },
+  { id:'apoio', label:'Ligar para apoio', emoji:'📞', triggers:['social', 'ansiedade'] },
+  { id:'chiclete', label:'Mascar chiclete', emoji:'🍬', triggers:['cafe', 'refeicao', 'direcao'] },
+  { id:'banho', label:'Tomar banho', emoji:'🚿', triggers:['estresse', 'dor'] },
+  { id:'audio', label:'Ouvir áudio relaxante', emoji:'🎧', triggers:['estresse', 'ansiedade'] },
+  { id:'sair', label:'Sair do gatilho', emoji:'🚪', triggers:['alcool', 'social'] },
+  { id:'respirar', label:'Respiração guiada', emoji:'🧘', triggers:['estresse', 'ansiedade', 'dor'] },
+  { id:'adiar', label:'Adiar por 5 min', emoji:'⏳', triggers:['tedio', 'direcao', 'outro'] },
+  { id:'alongar', label:'Pausa ativa', emoji:'🤸', triggers:['trabalho', 'tedio'] },
+  { id:'motivo', label:'Lembrar motivo', emoji:'💪', triggers:['alcool', 'outro'] },
 ];
 window._strategies = strategies;
 
@@ -28,13 +31,41 @@ export function mostrarEstrategias(user, profile) {
   currentUserAtual = user;
   userProfileAtual = profile;
   const container = document.getElementById('strategies-list');
-  container.innerHTML = strategies.map(s =>
-    `<div class="card" data-strategy-id="${s.id}" style="display:flex; align-items:center; gap:12px;">
+
+  const gatilhosDoUsuario = profile?.triggers || [];
+  const temPersonalizacao = gatilhosDoUsuario.length > 0;
+
+  const recomendadas = [];
+  const outras = [];
+  strategies.forEach(s => {
+    const combate = s.triggers.some(t => gatilhosDoUsuario.includes(t));
+    if (temPersonalizacao && combate) {
+      recomendadas.push(s);
+    } else {
+      outras.push(s);
+    }
+  });
+
+  function renderCard(s, destacar) {
+    return `<div class="card" data-strategy-id="${s.id}" style="display:flex; align-items:center; gap:12px; ${destacar ? 'border:2px solid var(--cor-secundaria);' : ''}">
       <span style="font-size:24px;">${s.emoji}</span>
-      <span style="font-size:16px; font-weight:500;">${s.label}</span>
-    </div>`
-  ).join('');
-  
+      <span style="font-size:16px; font-weight:500; flex:1;">${s.label}</span>
+      ${destacar ? '<span style="font-size:11px; background:var(--cor-secundaria); color:#fff; padding:3px 8px; border-radius:10px; white-space:nowrap;">Recomendado</span>' : ''}
+    </div>`;
+  }
+
+  let html;
+  if (temPersonalizacao && recomendadas.length) {
+    html = `<p style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:var(--texto-medio); margin:12px 0 6px;">Recomendado pra você</p>`
+      + recomendadas.map(s => renderCard(s, true)).join('')
+      + `<p style="font-size:13px; text-transform:uppercase; letter-spacing:0.5px; color:var(--texto-medio); margin:16px 0 6px;">Outras estratégias</p>`
+      + outras.map(s => renderCard(s, false)).join('');
+  } else {
+    // Sem gatilhos salvos no perfil: comportamento idêntico ao original.
+    html = strategies.map(s => renderCard(s, false)).join('');
+  }
+  container.innerHTML = html;
+
   container.querySelectorAll('.card').forEach(card => {
     card.addEventListener('click', function() {
       const id = this.dataset.strategyId;
@@ -44,14 +75,23 @@ export function mostrarEstrategias(user, profile) {
         iniciarRespiracao(currentUserAtual, userProfileAtual, false);
         return;
       }
-      // Estratégias simples -> overlay
-      window._selectedStrategyId = id;
-      const strategy = strategies.find(s => s.id === id);
-      document.getElementById('confirm-strategy-name').textContent = strategy.label;
-      document.getElementById('confirmation-overlay').classList.add('active');
+      // Estratégias simples -> tela dedicada (fundo temático + dica + frase do usuário)
+      abrirTelaEstrategia(id);
     });
   });
   atualizarRodizio(currentUserAtual, userProfileAtual);
+}
+
+function abrirTelaEstrategia(id) {
+  window._selectedStrategyId = id;
+  const fraseEl = document.querySelector(`.estrategia-frase-usuario[data-strategy-id="${id}"]`);
+  if (fraseEl) {
+    const frases = userProfileAtual?.frases || [];
+    fraseEl.textContent = frases.length
+      ? `"${frases[Math.floor(Math.random() * frases.length)]}"`
+      : '"Você é mais forte que a fissura"';
+  }
+  navigateTo(`screen-estrategia-${id}`);
 }
 
 function atualizarRodizio(user, profile) {
@@ -94,29 +134,33 @@ export function voltarEstrategias() {
   if (window._rodizioInterval) clearInterval(window._rodizioInterval);
 }
 
-// ===== OVERLAY (corrigido) =====
-document.getElementById('confirm-yes').addEventListener('click', async () => {
-  const overlay = document.getElementById('confirmation-overlay');
-  overlay.classList.remove('active');
-  const strategyId = window._selectedStrategyId;
-  if (strategyId && currentUserAtual) {
-    await saveCravingLog(strategyId, 6, false, currentUserAtual);
-    window._selectedStrategyId = null;
-    await atualizarContador(currentUserAtual.uid);
-    navigateTo('screen-dashboard');
-  }
+// ===== TELAS DE ESTRATÉGIA: voltar / resisti / fumei =====
+document.querySelectorAll('.btn-estrategia-voltar').forEach(btn => {
+  btn.addEventListener('click', () => navigateTo('screen-strategies'));
 });
 
-document.getElementById('confirm-no').addEventListener('click', async () => {
-  const overlay = document.getElementById('confirmation-overlay');
-  overlay.classList.remove('active');
-  const strategyId = window._selectedStrategyId;
-  if (strategyId && currentUserAtual) {
-    const strategyLabel = strategies.find(s => s.id === strategyId)?.label || strategyId;
-    await registerCigarroAutomatico(`Fissura - não resistiu (${strategyLabel})`, currentUserAtual);
-    window._selectedStrategyId = null;
-    navigateTo('screen-relapse');
-  }
+document.querySelectorAll('.estrategia-btn-venceu').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const strategyId = this.dataset.strategyId;
+    if (strategyId && currentUserAtual) {
+      await saveCravingLog(strategyId, 6, false, currentUserAtual);
+      window._selectedStrategyId = null;
+      await atualizarContador(currentUserAtual.uid);
+      navigateTo('screen-dashboard');
+    }
+  });
+});
+
+document.querySelectorAll('.estrategia-btn-fumou').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const strategyId = this.dataset.strategyId;
+    if (strategyId && currentUserAtual) {
+      const strategyLabel = strategies.find(s => s.id === strategyId)?.label || strategyId;
+      await registerCigarroAutomatico(`Fissura - não resistiu (${strategyLabel})`, currentUserAtual);
+      window._selectedStrategyId = null;
+      navigateTo('screen-relapse');
+    }
+  });
 });
 
 // ===== FUNÇÕES AUXILIARES =====
