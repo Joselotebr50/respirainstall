@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Respira - Pare de fumar</title>
 
   <!-- PWA: permite instalar o app no celular -->
@@ -42,10 +42,6 @@
     }
     #root {
       max-width:480px; margin:0 auto; padding:20px 18px 28px;
-      padding-top: max(20px, env(safe-area-inset-top));
-      padding-bottom: max(28px, env(safe-area-inset-bottom));
-      padding-left: max(18px, env(safe-area-inset-left));
-      padding-right: max(18px, env(safe-area-inset-right));
       display:flex; flex-direction:column;
       min-height:100vh; min-height:100dvh;
     }
@@ -119,7 +115,7 @@
     .btn-danger-sos:hover { background:#b91c1c; transform:scale(1.02); }
     .card { background:var(--bg-card); border-radius:20px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.08); cursor:pointer; transition:all .2s; }
     .card:hover { background:#152740; }
-    .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
+    .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .dashboard-spacer { height: 12vh; flex-shrink: 0; }
     .stat-number { font-size:30px; font-weight:700; color:var(--cor-secundaria); }
     .stat-label { font-size:13px; color:var(--texto-medio); }
@@ -171,7 +167,7 @@
       border: 1px solid rgba(255,255,255,0.22);
     }
     #screen-dashboard .stat-number {
-      font-size: 29px;
+      font-size: 33px;
       color: #ffffff;
       text-shadow: 0 1px 4px rgba(0,0,0,0.45);
     }
