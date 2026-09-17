@@ -75,14 +75,23 @@ export function mostrarEstrategias(user, profile) {
         iniciarRespiracao(currentUserAtual, userProfileAtual, false);
         return;
       }
-      // Estratégias simples -> overlay
-      window._selectedStrategyId = id;
-      const strategy = strategies.find(s => s.id === id);
-      document.getElementById('confirm-strategy-name').textContent = strategy.label;
-      document.getElementById('confirmation-overlay').classList.add('active');
+      // Estratégias simples -> tela dedicada (fundo temático + dica + frase do usuário)
+      abrirTelaEstrategia(id);
     });
   });
   atualizarRodizio(currentUserAtual, userProfileAtual);
+}
+
+function abrirTelaEstrategia(id) {
+  window._selectedStrategyId = id;
+  const fraseEl = document.querySelector(`.estrategia-frase-usuario[data-strategy-id="${id}"]`);
+  if (fraseEl) {
+    const frases = userProfileAtual?.frases || [];
+    fraseEl.textContent = frases.length
+      ? `"${frases[Math.floor(Math.random() * frases.length)]}"`
+      : '"Você é mais forte que a fissura"';
+  }
+  navigateTo(`screen-estrategia-${id}`);
 }
 
 function atualizarRodizio(user, profile) {
@@ -125,29 +134,33 @@ export function voltarEstrategias() {
   if (window._rodizioInterval) clearInterval(window._rodizioInterval);
 }
 
-// ===== OVERLAY (corrigido) =====
-document.getElementById('confirm-yes').addEventListener('click', async () => {
-  const overlay = document.getElementById('confirmation-overlay');
-  overlay.classList.remove('active');
-  const strategyId = window._selectedStrategyId;
-  if (strategyId && currentUserAtual) {
-    await saveCravingLog(strategyId, 6, false, currentUserAtual);
-    window._selectedStrategyId = null;
-    await atualizarContador(currentUserAtual.uid);
-    navigateTo('screen-dashboard');
-  }
+// ===== TELAS DE ESTRATÉGIA: voltar / resisti / fumei =====
+document.querySelectorAll('.btn-estrategia-voltar').forEach(btn => {
+  btn.addEventListener('click', () => navigateTo('screen-strategies'));
 });
 
-document.getElementById('confirm-no').addEventListener('click', async () => {
-  const overlay = document.getElementById('confirmation-overlay');
-  overlay.classList.remove('active');
-  const strategyId = window._selectedStrategyId;
-  if (strategyId && currentUserAtual) {
-    const strategyLabel = strategies.find(s => s.id === strategyId)?.label || strategyId;
-    await registerCigarroAutomatico(`Fissura - não resistiu (${strategyLabel})`, currentUserAtual);
-    window._selectedStrategyId = null;
-    navigateTo('screen-relapse');
-  }
+document.querySelectorAll('.estrategia-btn-venceu').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const strategyId = this.dataset.strategyId;
+    if (strategyId && currentUserAtual) {
+      await saveCravingLog(strategyId, 6, false, currentUserAtual);
+      window._selectedStrategyId = null;
+      await atualizarContador(currentUserAtual.uid);
+      navigateTo('screen-dashboard');
+    }
+  });
+});
+
+document.querySelectorAll('.estrategia-btn-fumou').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const strategyId = this.dataset.strategyId;
+    if (strategyId && currentUserAtual) {
+      const strategyLabel = strategies.find(s => s.id === strategyId)?.label || strategyId;
+      await registerCigarroAutomatico(`Fissura - não resistiu (${strategyLabel})`, currentUserAtual);
+      window._selectedStrategyId = null;
+      navigateTo('screen-relapse');
+    }
+  });
 });
 
 // ===== FUNÇÕES AUXILIARES =====
