@@ -355,3 +355,17 @@ window.addEventListener('appinstalled', () => {
   installBanner.style.display = 'none';
   deferredInstallPrompt = null;
 });
+
+// ===== TELA CHEIA (reforço via JS) =====
+// Alguns navegadores só ativam a tela cheia com um toque do usuário,
+// mesmo com o app instalado e o manifest pedindo "fullscreen".
+function tentarTelaCheia() {
+  if (!jaEstaInstalado()) return; // só faz sentido no app instalado, não numa aba solta do navegador
+  if (document.fullscreenElement) return; // já está em tela cheia
+  const el = document.documentElement;
+  if (el.requestFullscreen) {
+    el.requestFullscreen().catch(() => {}); // se o navegador recusar, segue normalmente sem tela cheia
+  }
+}
+document.addEventListener('click', tentarTelaCheia, { once: true });
+window.addEventListener('load', tentarTelaCheia);
