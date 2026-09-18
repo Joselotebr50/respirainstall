@@ -11,4 +11,4 @@ firebase.initializeApp(firebaseConfig);
 export const auth = firebase.auth();
 auth.languageCode = 'pt-BR';
 export const db = firebase.firestore();
-export const storage = firebase.storage();
+// Firebase Storage não é usado (mídia fica em base64 no Firestore).

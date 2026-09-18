@@ -54,6 +54,10 @@ function criarSeletorTemas() {
 export function iniciarOnboarding(edicao) {
   // Limpa campos se não for edição
   if (!edicao) {
+    document.getElementById('onboard-cigarettes').value = '10';
+    document.getElementById('onboard-time').value = '15';
+    document.getElementById('onboard-years').value = '5';
+    document.getElementById('onboard-quit-date').value = '7';
     document.getElementById('onboard-cost').value = '12.00';
     document.getElementById('frase1').value = '';
     document.getElementById('frase2').value = '';
@@ -148,70 +152,94 @@ export function carregarOnboardingParaEdicao(profile) {
 // ===== EXPORT: FINALIZAR ONBOARDING =====
 export async function finalizarOnboarding(user, edicao) {
   if (!user) return false;
+  try {
 
-  const temaSalvo = localStorage.getItem('tema_app') || listarTemas()[0].id;
-  const ajusteSalvo = 'top';
-  const frases = [
-    document.getElementById('frase1').value.trim(),
-    document.getElementById('frase2').value.trim(),
-    document.getElementById('frase3').value.trim(),
-    document.getElementById('frase4').value.trim()
-  ].filter(f => f !== '');
-  const cigarettesPerDay = parseInt(document.getElementById('onboard-cigarettes').value) || 10;
-  const timeToFirst = parseInt(document.getElementById('onboard-time').value) || 15;
-  const yearsSmoking = parseInt(document.getElementById('onboard-years').value) || 5;
-  const costPerPack = parseFloat(document.getElementById('onboard-cost').value) || 12.00;
-  const quitMode = document.getElementById('onboard-quit-date').value || '7';
+    const temaSalvo = localStorage.getItem('tema_app') || listarTemas()[0].id;
+    const ajusteSalvo = 'top';
+    const frases = [
+      document.getElementById('frase1').value.trim(),
+      document.getElementById('frase2').value.trim(),
+      document.getElementById('frase3').value.trim(),
+      document.getElementById('frase4').value.trim()
+    ].filter(f => f !== '');
+    const cigarettesPerDay = parseInt(document.getElementById('onboard-cigarettes').value) || 10;
+    const timeToFirst = parseInt(document.getElementById('onboard-time').value) || 15;
+    const yearsSmoking = parseInt(document.getElementById('onboard-years').value) || 5;
+    const costPerPack = parseFloat(document.getElementById('onboard-cost').value) || 12.00;
+    const quitMode = document.getElementById('onboard-quit-date').value || '7';
 
-  // ÁUDIO: já vem em base64 (gravado ou enviado). Guardado num documento à parte
-  // para não competir pelo limite de 1MB do documento principal do usuário.
-  const audioParaSalvar = recordedAudioBase64 || null;
+    // ÁUDIO: já vem em base64 (gravado ou enviado). Guardado num documento à parte
+    // para não competir pelo limite de 1MB do documento principal do usuário.
+    const audioParaSalvar = recordedAudioBase64 || null;
 
-  // FOTOS: já vêm comprimidas (ver compressImage) e em base64. Também num documento à parte.
-  const fotosParaSalvar = fotosBase64.filter(f => f);
+    // FOTOS: já vêm comprimidas (ver compressImage) e em base64. Também num documento à parte.
+    const fotosParaSalvar = fotosBase64.filter(f => f);
 
-  const dataToSave = {
-    cigarettesPerDay,
-    timeToFirst,
-    yearsSmoking,
-    costPerPack,
-    quitMode,
-    triggers: [...selectedTriggers],
-    tema: temaSalvo,
-    ajusteImagem: ajusteSalvo,
-    frases,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-  };
+    const dataToSave = {
+      cigarettesPerDay,
+      timeToFirst,
+      yearsSmoking,
+      costPerPack,
+      quitMode,
+      triggers: [...selectedTriggers],
+      tema: temaSalvo,
+      ajusteImagem: ajusteSalvo,
+      frases,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
 
-  // Só define a data de início do plano e cria o contador na primeira vez
-  // (edição de perfil não deve reiniciar um plano já em andamento)
-  if (!edicao) {
-    let quitDate = null;
-    if (quitMode === 'today') {
-      quitDate = new Date().toISOString();
-    } else if (quitMode !== 'reduce') {
-      const dias = parseInt(quitMode) || 7;
-      const d = new Date();
-      d.setDate(d.getDate() + dias);
-      quitDate = d.toISOString();
+    // Na primeira vez, sempre define a data de início do plano e cria o contador.
+    // Numa edição, só recalcula a data se o modo do plano realmente mudou —
+    // assim não reinicia um plano já em andamento sem necessidade, mas também
+    // não deixa a data desalinhada do plano exibido quando o usuário muda o modo.
+    if (!edicao) {
+      let quitDate = null;
+      if (quitMode === 'today') {
+        quitDate = new Date().toISOString();
+      } else if (quitMode !== 'reduce') {
+        const dias = parseInt(quitMode) || 7;
+        const d = new Date();
+        d.setDate(d.getDate() + dias);
+        quitDate = d.toISOString();
+      }
+      if (quitDate) dataToSave.quitDate = quitDate;
+
+      await db.collection('counters').doc(user.uid).set({
+        cigarettesAvoided: 0,
+        moneySaved: 0,
+        daysWithout: 0
+      }, { merge: true });
+    } else {
+      const docAtual = await db.collection('users').doc(user.uid).get();
+      const perfilAtual = docAtual.exists ? docAtual.data() : null;
+      if (perfilAtual && perfilAtual.quitMode !== quitMode) {
+        let novaQuitDate = null;
+        if (quitMode === 'today') {
+          novaQuitDate = new Date().toISOString();
+        } else if (quitMode !== 'reduce') {
+          const dias = parseInt(quitMode) || 7;
+          const d = new Date();
+          d.setDate(d.getDate() + dias);
+          novaQuitDate = d.toISOString();
+        }
+        // Se o novo modo for 'reduce', não há data fixa — mantemos a anterior fora do dataToSave.
+        if (novaQuitDate) dataToSave.quitDate = novaQuitDate;
+      }
     }
-    if (quitDate) dataToSave.quitDate = quitDate;
 
-    await db.collection('counters').doc(user.uid).set({
-      cigarettesAvoided: 0,
-      moneySaved: 0,
-      daysWithout: 0
-    }, { merge: true });
+    await db.collection('users').doc(user.uid).set(dataToSave, { merge: true });
+
+    // Documentos separados: cada um com seu próprio limite de 1MB,
+    // longe do documento principal (que é lido o tempo todo pelo app).
+    await db.collection('userMedia').doc(user.uid).set({ fotos: fotosParaSalvar }, { merge: true });
+    await db.collection('userAudio').doc(user.uid).set({ audioMotivacional: audioParaSalvar }, { merge: true });
+
+    return true;
+  } catch (e) {
+    console.error('Erro ao salvar o perfil:', e);
+    alert('Não foi possível salvar seu perfil. Verifique a conexão e tente de novo.');
+    return false;
   }
-
-  await db.collection('users').doc(user.uid).set(dataToSave, { merge: true });
-
-  // Documentos separados: cada um com seu próprio limite de 1MB,
-  // longe do documento principal (que é lido o tempo todo pelo app).
-  await db.collection('userMedia').doc(user.uid).set({ fotos: fotosParaSalvar }, { merge: true });
-  await db.collection('userAudio').doc(user.uid).set({ audioMotivacional: audioParaSalvar }, { merge: true });
-
-  return true;
 }
 
 // ===== ÁUDIO: GRAVAÇÃO PELO MICROFONE =====

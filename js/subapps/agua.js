@@ -5,8 +5,6 @@ import { atualizarContador } from '../dashboard.js';
 
 let aguaUser = null;
 let aguaProfile = null;
-let aguaSessaoId = null;
-let aguaAtividadeId = null;
 let aguaVariacao = null;
 let aguaGoleAtual = 0;
 let aguaRespiracaoInterval = null;
@@ -37,37 +35,16 @@ const aguaInstrucoes = {
 export function iniciarAgua(user, profile) {
   aguaUser = user;
   aguaProfile = profile;
-  aguaSessaoId = null;
-  aguaAtividadeId = null;
   aguaVariacao = null;
   aguaGoleAtual = 0;
   if (aguaRespiracaoInterval) clearInterval(aguaRespiracaoInterval);
   navigateTo('screen-agua');
   mostrarEtapa('agua-tela-abertura');
-  criarSessaoAtividade();
 }
 
 function mostrarEtapa(id) {
   document.querySelectorAll('#screen-agua .subapp-tela').forEach(el => el.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-}
-
-async function criarSessaoAtividade() {
-  if (!aguaUser) return;
-  const sessaoRef = db.collection('users').doc(aguaUser.uid).collection('sessoes_sos').doc();
-  aguaSessaoId = sessaoRef.id;
-  await sessaoRef.set({
-    data_hora_inicio: firebase.firestore.FieldValue.serverTimestamp(),
-    status: 'em_andamento'
-  });
-  const ativRef = sessaoRef.collection('atividades').doc();
-  aguaAtividadeId = ativRef.id;
-  await ativRef.set({
-    tipo: 'beber_agua',
-    variacao: null,
-    data_hora_inicio: firebase.firestore.FieldValue.serverTimestamp(),
-    concluida: false
-  });
 }
 
 export function aguaMostrarVariacao() { mostrarEtapa('agua-tela-variacao'); }
@@ -103,6 +80,8 @@ function mostrarGole() {
 function iniciarRespiracaoEntreGoles() {
   document.getElementById('agua-botao-proximo').style.display = 'none';
   const respDiv = document.getElementById('agua-respiracao');
+  // remove botões "Continuar" de goles anteriores (senão acumulam e pulam etapas)
+  respDiv.querySelectorAll('.agua-btn-continuar').forEach(b => b.remove());
   respDiv.style.display = 'block';
   const circle = document.getElementById('agua-breath-circle');
   const texto = document.getElementById('agua-respiracao-texto');
@@ -132,7 +111,7 @@ function iniciarRespiracaoEntreGoles() {
         circle.style.background = '#22c55e';
         circle.style.transform = 'scale(1)';
         const continuarBtn = document.createElement('button');
-        continuarBtn.className = 'btn btn-primary';
+        continuarBtn.className = 'btn btn-primary agua-btn-continuar';
         continuarBtn.textContent = 'Continuar';
         continuarBtn.onclick = () => {
           respDiv.style.display = 'none';
@@ -153,10 +132,18 @@ export function aguaPularGole() {
 window.aguaPularGole = aguaPularGole;
 
 // ===== CORREÇÃO: REGISTRAR FISSURA E ATUALIZAR DASHBOARD =====
+let aguaSalvando = false;
+
 export async function aguaRegistrarFissura(intensidade) {
-  await saveFissura(intensidade);
-  if (aguaUser) {
-    await atualizarContador(aguaUser.uid);
+  if (aguaSalvando) return; // evita registro duplicado por toque duplo
+  aguaSalvando = true;
+  try {
+    await saveFissura(intensidade);
+    if (aguaUser) {
+      await atualizarContador(aguaUser.uid, aguaProfile);
+    }
+  } finally {
+    aguaSalvando = false;
   }
   const mensagem = intensidade === 'passou' || intensidade === 'fraca'
     ? 'Você cuidou de si. A fissura perde força.'
@@ -167,19 +154,15 @@ export async function aguaRegistrarFissura(intensidade) {
 window.aguaRegistrarFissura = aguaRegistrarFissura;
 
 async function saveFissura(intensidade) {
-  if (!aguaSessaoId || !aguaUser) return;
+  if (!aguaUser) return;
   try {
-    const ativRef = db.collection('users').doc(aguaUser.uid)
-      .collection('sessoes_sos').doc(aguaSessaoId)
-      .collection('atividades').doc(aguaAtividadeId);
-    await ativRef.update({ concluida: true, data_hora_fim: firebase.firestore.FieldValue.serverTimestamp() });
-    await db.collection('users').doc(aguaUser.uid)
-      .collection('sessoes_sos').doc(aguaSessaoId)
-      .update({ status: 'concluida', data_hora_fim: firebase.firestore.FieldValue.serverTimestamp() });
     await db.collection('cravingLogs').add({
       userId: aguaUser.uid,
       timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       trigger: 'Água - ' + aguaVariacao,
+      gatilho: null,
+      origem: 'agua',
+      variacao: aguaVariacao,
       intensity: intensidade === 'passou' ? 2 : intensidade === 'fraca' ? 4 : intensidade === 'moderada' ? 6 : 8,
       strategyUsed: 'agua',
       smoked: false
@@ -200,7 +183,6 @@ async function saveFissura(intensidade) {
 export function aguaRepetir() {
   aguaGoleAtual = 0;
   aguaVariacao = null;
-  criarSessaoAtividade();
   aguaMostrarVariacao();
 }
 window.aguaRepetir = aguaRepetir;
@@ -209,7 +191,7 @@ window.aguaRepetir = aguaRepetir;
 export async function aguaSairParaEstrategias() {
   if (aguaRespiracaoInterval) clearInterval(aguaRespiracaoInterval);
   if (aguaUser) {
-    await atualizarContador(aguaUser.uid);
+    await atualizarContador(aguaUser.uid, aguaProfile);
   }
   navigateTo('screen-strategies');
 }

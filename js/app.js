@@ -9,7 +9,7 @@ import {
   finalizarOnboarding 
 } from './onboarding.js';
 import { renderDashboard, atualizarContador } from './dashboard.js';
-import { mostrarEstrategias, voltarEstrategias } from './strategies.js';
+import { mostrarEstrategias, voltarEstrategias, strategies as TODAS_ESTRATEGIAS } from './strategies.js';
 import { iniciarRespiracao, finalizarRespiracao } from './subapps/respiracao.js';
 import { iniciarAgua, sairAgua } from './subapps/agua.js';
 import { carregarTemaSalvo, aplicarTema } from './themeManager.js';
@@ -19,7 +19,6 @@ import { carregarHistory } from './history.js';
 // ===== VARIÁVEIS GLOBAIS =====
 export let currentUser = null;
 export let userProfile = null;
-export let userQuitPlan = null;
 export let modoEdicao = false;
 
 const PROTECTED_SCREENS = [
@@ -99,48 +98,49 @@ async function carregarMidiaDoUsuario(uid) {
 }
 
 // ===== AUTH STATE =====
+// Carrega o perfil. Nunca grava nada aqui: se a leitura falhar (rede, permissão),
+// mostra o aviso e deixa o usuário tentar de novo — assim um erro passageiro
+// não sobrescreve um perfil existente.
+async function carregarPerfil(user) {
+  const msg = document.getElementById('login-message');
+  msg.textContent = '';
+  let doc;
+  try {
+    doc = await db.collection('users').doc(user.uid).get();
+  } catch (e) {
+    console.warn('Erro ao carregar perfil:', e);
+    userProfile = null;
+    msg.textContent = 'Não foi possível carregar seu perfil. Verifique a conexão e toque em Entrar para tentar de novo.';
+    showScreen('screen-login');
+    return;
+  }
+  if (!doc.exists) {
+    userProfile = null;
+    showScreen('screen-onboarding');
+    iniciarOnboarding(false);
+    return;
+  }
+  userProfile = doc.data();
+  await carregarMidiaDoUsuario(user.uid);
+  // APLICA TEMA
+  if (userProfile.tema) {
+    aplicarTema(userProfile.tema, userProfile.ajusteImagem || 'top');
+  } else {
+    carregarTemaSalvo();
+  }
+  showScreen('screen-dashboard');
+  updatePlanBadge();
+}
+
 auth.onAuthStateChanged(async (user) => {
   document.getElementById('screen-loading').classList.remove('active');
   if (user) {
     currentUser = user;
     document.getElementById('user-email').textContent = currentUser.email;
-    try {
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (doc.exists) {
-        userProfile = doc.data();
-        const planSnap = await db.collection('quitPlans').doc(user.uid).get();
-        userQuitPlan = planSnap.exists ? planSnap.data() : null;
-        await carregarMidiaDoUsuario(user.uid);
-        // APLICA TEMA
-        if (userProfile.tema) {
-          aplicarTema(userProfile.tema, userProfile.ajusteImagem || 'top');
-        } else {
-          carregarTemaSalvo();
-        }
-        showScreen('screen-dashboard');
-        updatePlanBadge();
-      } else {
-        userProfile = null;
-        showScreen('screen-onboarding');
-        iniciarOnboarding(false);
-      }
-    } catch (e) {
-      console.warn(e);
-      if (!userProfile) {
-        try {
-          await db.collection('users').doc(user.uid).set({ userId: user.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-          userProfile = { userId: user.uid };
-          showScreen('screen-onboarding');
-          iniciarOnboarding(false);
-        } catch (e2) {
-          showScreen('screen-login');
-        }
-      }
-    }
+    await carregarPerfil(user);
   } else {
     currentUser = null;
     userProfile = null;
-    userQuitPlan = null;
     document.getElementById('login-email').value = '';
     document.getElementById('login-password').value = '';
     document.getElementById('login-message').textContent = '';
@@ -148,9 +148,27 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
+// Preenche o <select> de "Venci fissura" (registro manual) a partir da mesma
+// lista de estratégias usada em strategies.js e history.js — fonte única,
+// evita que o select fique desatualizado se uma estratégia mudar.
+(function preencherSelectEstrategias() {
+  const select = document.getElementById('craving-strategy');
+  if (!select) return;
+  select.innerHTML = TODAS_ESTRATEGIAS.map(s => `<option value="${s.id}">${s.emoji} ${s.label}</option>`).join('');
+})();
+
 // ===== EVENTOS DE LOGIN =====
-document.getElementById('btn-login').addEventListener('click', () => login());
-document.getElementById('login-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') login(); });
+// Se já está autenticado mas o perfil não carregou (erro de rede), "Entrar" só tenta carregar de novo.
+function entrarOuTentarDeNovo() {
+  const emailVazio = !document.getElementById('login-email').value.trim();
+  if (currentUser && !userProfile && emailVazio) {
+    carregarPerfil(currentUser);
+    return;
+  }
+  login();
+}
+document.getElementById('btn-login').addEventListener('click', () => entrarOuTentarDeNovo());
+document.getElementById('login-password').addEventListener('keypress', (e) => { if (e.key === 'Enter') entrarOuTentarDeNovo(); });
 document.getElementById('login-email').addEventListener('keypress', (e) => { if (e.key === 'Enter') document.getElementById('login-password').focus(); });
 document.getElementById('toggle-login-password').addEventListener('click', function() {
   const input = document.getElementById('login-password');
@@ -172,6 +190,8 @@ document.getElementById('btn-onboarding-sair').addEventListener('click', () => {
   if (confirm('Descartar alterações?')) {
     if (modoEdicao) {
       modoEdicao = false;
+      // desfaz a pré-visualização de tema feita durante a edição
+      if (userProfile?.tema) aplicarTema(userProfile.tema, userProfile.ajusteImagem || 'top');
       showScreen('screen-dashboard');
     } else {
       auth.signOut();
@@ -180,18 +200,26 @@ document.getElementById('btn-onboarding-sair').addEventListener('click', () => {
   }
 });
 
-document.getElementById('btn-finish-onboarding').addEventListener('click', async () => {
-  const success = await finalizarOnboarding(currentUser, modoEdicao);
-  if (success) {
-    modoEdicao = false;
-    const doc = await db.collection('users').doc(currentUser.uid).get();
-    userProfile = doc.exists ? doc.data() : null;
-    const planSnap = await db.collection('quitPlans').doc(currentUser.uid).get();
-    userQuitPlan = planSnap.exists ? planSnap.data() : null;
-    if (userProfile) await carregarMidiaDoUsuario(currentUser.uid);
-    if (userProfile?.tema) aplicarTema(userProfile.tema, userProfile.ajusteImagem || 'top');
-    showScreen('screen-dashboard');
-    updatePlanBadge();
+const btnFinishOnboarding = document.getElementById('btn-finish-onboarding');
+btnFinishOnboarding.addEventListener('click', async () => {
+  if (btnFinishOnboarding.disabled) return;
+  btnFinishOnboarding.disabled = true;
+  try {
+    const success = await finalizarOnboarding(currentUser, modoEdicao);
+    if (success) {
+      modoEdicao = false;
+      const doc = await db.collection('users').doc(currentUser.uid).get();
+      userProfile = doc.exists ? doc.data() : null;
+      if (userProfile) await carregarMidiaDoUsuario(currentUser.uid);
+      if (userProfile?.tema) aplicarTema(userProfile.tema, userProfile.ajusteImagem || 'top');
+      showScreen('screen-dashboard');
+      updatePlanBadge();
+    }
+  } catch (e) {
+    console.error('Erro ao concluir o cadastro:', e);
+    alert('Salvamos seus dados, mas não foi possível recarregar o perfil. Feche e abra o app.');
+  } finally {
+    btnFinishOnboarding.disabled = false;
   }
 });
 
@@ -256,14 +284,19 @@ document.getElementById('btn-save-cigarette').addEventListener('click', async ()
   const context = document.getElementById('cig-context').value || 'não informado';
   const craving = parseInt(document.getElementById('cig-craving').value) || 0;
   const emotion = document.getElementById('cig-emotion').value || 'não informado';
-  await db.collection('cigaretteLogs').add({
-    userId: currentUser.uid,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    context,
-    craving,
-    emotion
-  });
-  showScreen('screen-dashboard');
+  try {
+    await db.collection('cigaretteLogs').add({
+      userId: currentUser.uid,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      context,
+      craving,
+      emotion
+    });
+    showScreen('screen-dashboard');
+  } catch (e) {
+    console.error('Erro ao salvar registro:', e);
+    alert('Não foi possível salvar. Verifique a conexão e tente de novo.');
+  }
 });
 
 document.getElementById('btn-register-craving').addEventListener('click', () => showScreen('screen-register-craving'));
@@ -272,23 +305,31 @@ document.getElementById('btn-cancel-craving').addEventListener('click', () => sh
 document.getElementById('btn-save-craving').addEventListener('click', async () => {
   if (!currentUser) { alert('Faça login.'); return; }
   const trigger = document.getElementById('craving-trigger').value || 'não informado';
-  const intensity = parseInt(document.getElementById('craving-intensity').value) || 6;
+  const intensidadeLida = parseInt(document.getElementById('craving-intensity').value);
+  const intensity = Number.isNaN(intensidadeLida) ? 6 : intensidadeLida;
   const strategy = document.getElementById('craving-strategy').value;
-  await db.collection('cravingLogs').add({
-    userId: currentUser.uid,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    trigger,
-    intensity,
-    strategyUsed: strategy,
-    smoked: false
-  });
-  const counterRef = db.collection('counters').doc(currentUser.uid);
-  const cost = userProfile?.costPerPack || 12.00;
-  await counterRef.set({
-    cigarettesAvoided: firebase.firestore.FieldValue.increment(1),
-    moneySaved: firebase.firestore.FieldValue.increment(cost / 20)
-  }, { merge: true });
-  showScreen('screen-dashboard');
+  try {
+    await db.collection('cravingLogs').add({
+      userId: currentUser.uid,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      trigger,
+      gatilho: null,
+      origem: 'manual',
+      intensity,
+      strategyUsed: strategy,
+      smoked: false
+    });
+    const counterRef = db.collection('counters').doc(currentUser.uid);
+    const cost = userProfile?.costPerPack || 12.00;
+    await counterRef.set({
+      cigarettesAvoided: firebase.firestore.FieldValue.increment(1),
+      moneySaved: firebase.firestore.FieldValue.increment(cost / 20)
+    }, { merge: true });
+    showScreen('screen-dashboard');
+  } catch (e) {
+    console.error('Erro ao salvar fissura:', e);
+    alert('Não foi possível salvar. Verifique a conexão e tente de novo.');
+  }
 });
 
 // ===== RECAÍDA =====
@@ -301,15 +342,20 @@ document.getElementById('btn-save-relapse').addEventListener('click', async () =
   const trigger = document.getElementById('relapse-trigger').value || 'não informado';
   const feeling = document.getElementById('relapse-feeling').value || 'não informado';
   const learn = document.getElementById('relapse-learn').value || 'não informado';
-  await db.collection('relapseEvents').add({
-    userId: currentUser.uid,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    place,
-    trigger,
-    feeling,
-    lessonLearned: learn
-  });
-  showScreen('screen-dashboard');
+  try {
+    await db.collection('relapseEvents').add({
+      userId: currentUser.uid,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      place,
+      trigger,
+      feeling,
+      lessonLearned: learn
+    });
+    showScreen('screen-dashboard');
+  } catch (e) {
+    console.error('Erro ao salvar recaída:', e);
+    alert('Não foi possível salvar. Verifique a conexão e tente de novo.');
+  }
 });
 
 console.log('✅ App completo com todas as funcionalidades!');
@@ -320,6 +366,8 @@ const installBanner = document.getElementById('install-banner');
 
 function jaEstaInstalado() {
   return window.matchMedia('(display-mode: standalone)').matches
+    || window.matchMedia('(display-mode: fullscreen)').matches
+    || window.matchMedia('(display-mode: minimal-ui)').matches
     || window.navigator.standalone === true; // iOS
 }
 

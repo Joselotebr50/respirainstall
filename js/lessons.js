@@ -12,7 +12,14 @@ const lessons = [
 
 export function carregarLessons() {
   const container = document.getElementById('lessons-list');
-  container.innerHTML = lessons.map((l, i) =>
-    `<div class="card" onclick="alert('${l.content}')"><strong>${i+1}. ${l.title}</strong></div>`
-  ).join('');
+  container.innerHTML = '';
+  lessons.forEach((l, i) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const titulo = document.createElement('strong');
+    titulo.textContent = `${i + 1}. ${l.title}`;
+    card.appendChild(titulo);
+    card.addEventListener('click', () => alert(l.content));
+    container.appendChild(card);
+  });
 }

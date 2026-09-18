@@ -1,36 +1,59 @@
 // js/history.js
 import { db } from './firebase.js';
+import { strategies } from './strategies.js';
+import { rotuloGatilho } from './registroFissura.js';
 
-const strategies = [
-  { id:'agua', label:'Água' }, { id:'caminhar', label:'Caminhar' },
-  { id:'apoio', label:'Apoio' }, { id:'chiclete', label:'Chiclete' },
-  { id:'banho', label:'Banho' }, { id:'audio', label:'Áudio' },
-  { id:'sair', label:'Sair' }, { id:'respirar', label:'Respirar' },
-  { id:'adiar', label:'Adiar' }, { id:'alongar', label:'Alongar' },
-  { id:'motivo', label:'Motivo' }, { id:'respirar_sos', label:'SOS Respiração' },
-];
+// 'respirar_sos' é gravado pelo fluxo de SOS mas não existe como estratégia
+// clicável em strategies.js — mantemos só o rótulo aqui para exibição.
+const rotulosExtras = { respirar_sos: 'SOS Respiração' };
+
+function esc(v) {
+  return String(v ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+// Busca os 10 mais recentes. Usa orderBy/limit no Firestore (exige índice composto
+// userId + timestamp). Se o índice ainda não existir, cai para o modo antigo
+// (busca por userId e ordena no aparelho) para a tela continuar funcionando.
+async function buscarUltimos(colecao, uid) {
+  try {
+    const snap = await db.collection(colecao)
+      .where('userId', '==', uid).orderBy('timestamp', 'desc').limit(10).get();
+    return snap.docs.map(doc => doc.data());
+  } catch (e) {
+    if (e.code !== 'failed-precondition') throw e;
+    console.warn(`Índice composto ausente em "${colecao}". Crie pelo link da mensagem:`, e.message);
+    const snap = await db.collection(colecao).where('userId', '==', uid).get();
+    const lista = snap.docs.map(doc => doc.data());
+    const ms = (d) => d.timestamp?.toMillis?.() ?? Date.now();
+    lista.sort((a, b) => ms(b) - ms(a));
+    return lista.slice(0, 10);
+  }
+}
 
 export async function carregarHistory(user) {
   const container = document.getElementById('history-content');
   container.innerHTML = 'Carregando...';
   try {
-    const logsSnap = await db.collection('cigaretteLogs').where('userId','==',user.uid).get();
-    const cravingsSnap = await db.collection('cravingLogs').where('userId','==',user.uid).get();
-    let logs = []; logsSnap.forEach(doc => { const d=doc.data(); logs.push({...d, timestamp: d.timestamp?.toDate?.()||new Date()}); });
-    logs.sort((a,b)=>b.timestamp-a.timestamp); logs=logs.slice(0,10);
-    let cravings = []; cravingsSnap.forEach(doc => { const d=doc.data(); cravings.push({...d, timestamp: d.timestamp?.toDate?.()||new Date()}); });
-    cravings.sort((a,b)=>b.timestamp-a.timestamp); cravings=cravings.slice(0,10);
+    const [logs, cravings] = await Promise.all([
+      buscarUltimos('cigaretteLogs', user.uid),
+      buscarUltimos('cravingLogs', user.uid)
+    ]);
     let html = '<h3>Últimos cigarros</h3>';
-    if (logs.length===0) html += '<p>Nenhum cigarro registrado.</p>';
-    logs.forEach(d => { html += `<div class="card"><strong>${d.context||'Contexto'}</strong> - Vontade: ${d.craving}/10 - ${d.emotion||''}</div>`; });
+    if (logs.length === 0) html += '<p>Nenhum cigarro registrado.</p>';
+    logs.forEach(d => {
+      html += `<div class="card"><strong>${esc(d.context || 'Contexto')}</strong> - Vontade: ${esc(d.craving)}/10 - ${esc(d.emotion || '')}</div>`;
+    });
     html += '<h3>Últimas fissuras vencidas</h3>';
-    if (cravings.length===0) html += '<p>Nenhuma fissura registrada.</p>';
+    if (cravings.length === 0) html += '<p>Nenhuma fissura registrada.</p>';
     cravings.forEach(d => {
-      const strategyLabel = strategies.find(s=>s.id===d.strategyUsed)?.label || d.strategyUsed || 'não informado';
-      html += `<div class="card"><strong>${d.trigger||'Gatilho'}</strong> - Intensidade: ${d.intensity}/10 - Estratégia: ${strategyLabel}</div>`;
+      const strategyLabel = strategies.find(s => s.id === d.strategyUsed)?.label || rotulosExtras[d.strategyUsed] || d.strategyUsed || 'não informado';
+      const gatilho = d.gatilho ? ` - Gatilho: ${esc(rotuloGatilho(d.gatilho))}` : '';
+      html += `<div class="card"><strong>${esc(d.trigger || 'Gatilho')}</strong> - Intensidade: ${esc(d.intensity)}/10 - Estratégia: ${esc(strategyLabel)}${gatilho}</div>`;
     });
     container.innerHTML = html;
-  } catch(e) {
-    container.innerHTML = `<p>Erro: ${e.message}</p>`;
+  } catch (e) {
+    container.innerHTML = `<p>Erro: ${esc(e.message)}</p>`;
   }
 }

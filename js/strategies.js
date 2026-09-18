@@ -4,11 +4,12 @@ import { navigateTo } from './app.js';
 import { iniciarRespiracao } from './subapps/respiracao.js';
 import { iniciarAgua } from './subapps/agua.js';
 import { atualizarContador } from './dashboard.js';
+import { pedirDetalhesFissura } from './registroFissura.js';
 
 // Cada estratégia carrega os gatilhos (definidos no onboarding, #trigger-group)
 // que ela combate melhor. Usado só para REORDENAR a lista (nunca para esconder
 // estratégias) quando o perfil do usuário tem gatilhos salvos.
-const strategies = [
+export const strategies = [
   { id:'agua', label:'Beber água', emoji:'💧', triggers:['cafe', 'refeicao'] },
   { id:'caminhar', label:'Caminhar', emoji:'🚶', triggers:['trabalho', 'tedio'] },
   { id:'apoio', label:'Ligar para apoio', emoji:'📞', triggers:['social', 'ansiedade'] },
@@ -142,11 +143,20 @@ document.querySelectorAll('.btn-estrategia-voltar').forEach(btn => {
 document.querySelectorAll('.estrategia-btn-venceu').forEach(btn => {
   btn.addEventListener('click', async function() {
     const strategyId = this.dataset.strategyId;
-    if (strategyId && currentUserAtual) {
-      await saveCravingLog(strategyId, 6, false, currentUserAtual);
+    if (!strategyId || !currentUserAtual || this.disabled) return;
+    const detalhes = await pedirDetalhesFissura('Registrar fissura vencida');
+    if (!detalhes) return; // cancelou: fica na tela da estratégia
+    this.disabled = true;
+    try {
+      await saveCravingLog(strategyId, detalhes.intensidade, detalhes.gatilho, false, currentUserAtual);
       window._selectedStrategyId = null;
-      await atualizarContador(currentUserAtual.uid);
+      await atualizarContador(currentUserAtual.uid, userProfileAtual);
       navigateTo('screen-dashboard');
+    } catch (e) {
+      console.error('Erro ao registrar fissura:', e);
+      alert('Não foi possível salvar. Verifique a conexão e tente de novo.');
+    } finally {
+      this.disabled = false;
     }
   });
 });
@@ -164,18 +174,22 @@ document.querySelectorAll('.estrategia-btn-fumou').forEach(btn => {
 });
 
 // ===== FUNÇÕES AUXILIARES =====
-async function saveCravingLog(strategyId, intensity, smoked, user) {
+// 'trigger' continua com o texto descritivo (compatível com registros antigos);
+// 'gatilho' guarda o gatilho da situação (id de GATILHOS) e 'origem' de onde veio o registro.
+async function saveCravingLog(strategyId, intensity, gatilho, smoked, user) {
   await db.collection('cravingLogs').add({
     userId: user.uid,
     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     trigger: 'Estratégia: ' + (strategies.find(s => s.id === strategyId)?.label || strategyId),
-    intensity: intensity || 6,
+    gatilho: gatilho || null,
+    origem: 'estrategia',
+    intensity: Number.isFinite(intensity) ? intensity : 6,
     strategyUsed: strategyId,
     smoked: smoked || false
   });
   if (!smoked) {
     const counterRef = db.collection('counters').doc(user.uid);
-    const cost = await getCostPerPack(user.uid);
+    const cost = userProfileAtual?.costPerPack || 12.00;
     await counterRef.set({
       cigarettesAvoided: firebase.firestore.FieldValue.increment(1),
       moneySaved: firebase.firestore.FieldValue.increment(cost / 20)
@@ -193,7 +207,3 @@ async function registerCigarroAutomatico(trigger, user) {
   });
 }
 
-async function getCostPerPack(uid) {
-  const doc = await db.collection('users').doc(uid).get();
-  return doc.exists ? (doc.data().costPerPack || 12.00) : 12.00;
-}
