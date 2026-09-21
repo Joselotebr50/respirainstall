@@ -1,6 +1,6 @@
 // js/onboarding.js
 import { db } from './firebase.js';
-import { listarTemas, aplicarTema } from './themeManager.js';
+import { listarTemas, aplicarTema, resolverIdTema } from './themeManager.js';
 
 let selectedTriggers = [];
 let recordedAudioBase64 = null;
@@ -14,37 +14,40 @@ function criarSeletorTemas() {
   if (!container) return;
   container.innerHTML = '';
   const temas = listarTemas();
-  const coresFallback = ['#3b82f6', '#0ea5e9', '#22c55e', '#f43f5e', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6', '#f97316', '#6366f1'];
-  temas.forEach((t, index) => {
+  const atual = resolverIdTema(localStorage.getItem('tema_app'));
+  const marcar = (btn, ativo) => {
+    btn.style.borderColor = ativo ? 'var(--cor-secundaria)' : 'transparent';
+    btn.style.boxShadow = ativo ? '0 0 16px var(--cor-secundaria)' : 'none';
+  };
+  temas.forEach((t) => {
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.className = 'btn btn-sm btn-outline';
     btn.textContent = t.nome;
-    btn.style.backgroundColor = coresFallback[index % coresFallback.length];
+    btn.dataset.temaId = t.id;
+    // miniatura: topo da imagem (onde fica a ilustração) + degradê escuro embaixo para o nome ficar legível
+    btn.style.backgroundColor = t.cores.fundo;
+    btn.style.backgroundImage = `linear-gradient(to top, rgba(0,0,0,0.65), rgba(0,0,0,0) 55%), url(${t.imagem})`;
+    btn.style.backgroundSize = 'cover';
+    btn.style.backgroundPosition = 'center top';
     btn.style.color = 'white';
-    btn.style.border = '2px solid rgba(255,255,255,0.3)';
-    btn.style.padding = '10px 16px';
-    btn.style.fontSize = '14px';
-    btn.style.minWidth = '70px';
-    btn.style.minHeight = '70px';
+    btn.style.border = '2px solid transparent';
+    btn.style.flex = '1 1 28%';
+    btn.style.minWidth = '88px';
+    btn.style.minHeight = '96px';
+    btn.style.padding = '6px';
+    btn.style.fontSize = '13px';
+    btn.style.display = 'flex';
+    btn.style.alignItems = 'flex-end';
+    btn.style.justifyContent = 'center';
     btn.style.borderRadius = '12px';
     btn.style.cursor = 'pointer';
-    btn.style.textShadow = '0 2px 4px rgba(0,0,0,0.5)';
-    const img = new Image();
-    img.src = t.imagem;
-    img.onload = () => {
-      btn.style.backgroundImage = `url(${t.imagem})`;
-      btn.style.backgroundColor = 'transparent';
-      btn.style.backgroundSize = 'cover';
-      btn.style.backgroundPosition = 'center';
-    };
+    btn.style.textShadow = '0 1px 3px rgba(0,0,0,0.7)';
+    marcar(btn, t.id === atual);
     btn.onclick = () => {
       aplicarTema(t.id, 'top');
-      container.querySelectorAll('button').forEach(b => {
-        b.style.borderColor = 'transparent';
-        b.style.boxShadow = 'none';
-      });
-      btn.style.borderColor = 'var(--cor-secundaria)';
-      btn.style.boxShadow = '0 0 16px var(--cor-secundaria)';
+      container.querySelectorAll('button').forEach(b => marcar(b, false));
+      marcar(btn, true);
     };
     container.appendChild(btn);
   });

@@ -4,7 +4,7 @@
 // (Os DADOS — login e Firestore — continuam precisando de conexão.)
 // Atenção: sempre que os arquivos do app forem atualizados, mude o CACHE_VERSION
 // abaixo para forçar o navegador a buscar os arquivos novos.
-const CACHE_VERSION = 'respira-v12';
+const CACHE_VERSION = 'respira-v13';
 const SDK_CACHE = 'respira-sdk-v1'; // SDK do Firebase (URLs com versão fixa, não muda)
 
 const APP_SHELL = [
@@ -28,6 +28,10 @@ const APP_SHELL = [
   './assets/fundos/fundo3.jpg',
   './assets/fundos/fundo4.jpg',
   './assets/fundos/fundo5.jpg',
+  './assets/fundos/fundo6.jpg',
+  './assets/fundos/fundo7.jpg',
+  './assets/fundos/fundo8.jpg',
+  './assets/fundos/fundo9.jpg',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './assets/icons/apple-touch-icon.png'

@@ -30,6 +30,11 @@
       --cor-primaria: #3b82f6;
       --cor-secundaria: #4fd1f0;
       --cor-destaque: #f59e0b;
+      --borda: rgba(255,255,255,0.18);
+      --hover-card: #152740;
+      --bg-thumb: #1a2a40;
+      --bg-chip-suave: rgba(255,255,255,0.08);
+      --badge-bg: rgba(15,30,46,0.9);
     }
     html, body {
       touch-action: manipulation; /* evita zoom por toque duplo, mas permite pinça (acessibilidade) */
@@ -94,7 +99,7 @@
     p { font-size:15px; line-height:1.6; color:var(--texto-medio); margin-bottom:12px; }
     .subtitle { font-size:14px; color:var(--texto-medio); margin-bottom:20px; }
     input, select, textarea {
-      width:100%; padding:14px 16px; border:1px solid rgba(255,255,255,0.15); border-radius:16px;
+      width:100%; padding:14px 16px; border:1px solid var(--borda); border-radius:16px;
       font-size:16px; background:var(--bg-card); color:var(--texto-principal);
       transition:border .2s; margin-bottom:12px; outline:none;
     }
@@ -111,23 +116,23 @@
     .btn-success:hover { background:#16a34a; }
     .btn-danger { background:#ef4444; color:white; }
     .btn-danger:hover { background:#dc2626; }
-    .btn-outline { background:var(--bg-card); border:1px solid rgba(255,255,255,0.2); }
-    .btn-outline:hover { background:#16283e; }
+    .btn-outline { background:var(--bg-card); border:1px solid var(--borda); }
+    .btn-outline:hover { background:var(--hover-card); }
     .btn-sos { background:var(--cor-destaque); color:white; font-size:20px; padding:18px; border-radius:50px; box-shadow:0 8px 24px rgba(245,158,11,0.35); }
     .btn-sos:hover { background:#d97706; transform:scale(1.02); }
     .btn-sm { padding:11px 16px; font-size:14px; width:auto; display:inline-block; }
     .btn-danger-sos { background:#dc2626; color:white; font-size:20px; padding:18px; border-radius:50px; box-shadow:0 8px 24px rgba(220,38,38,0.4); }
     .btn-danger-sos:hover { background:#b91c1c; transform:scale(1.02); }
-    .card { background:var(--bg-card); border-radius:20px; padding:16px; margin-bottom:14px; border:1px solid rgba(255,255,255,0.08); cursor:pointer; transition:all .2s; }
-    .card:hover { background:#152740; }
+    .card { background:var(--bg-card); border-radius:20px; padding:16px; margin-bottom:14px; border:1px solid var(--borda); cursor:pointer; transition:all .2s; }
+    .card:hover { background:var(--hover-card); }
     .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
     .dashboard-spacer { height: 12vh; flex-shrink: 0; }
     .stat-number { font-size:30px; font-weight:700; color:var(--cor-secundaria); }
     .stat-label { font-size:13px; color:var(--texto-medio); }
     .chip-group { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
-    .chip { padding:8px 16px; border-radius:50px; border:1px solid rgba(255,255,255,0.18); background:var(--bg-card); color:var(--texto-medio); font-size:14px; cursor:pointer; user-select:none; }
+    .chip { padding:8px 16px; border-radius:50px; border:1px solid var(--borda); background:var(--bg-card); color:var(--texto-medio); font-size:14px; cursor:pointer; user-select:none; }
     .chip.selected { background:var(--cor-primaria); color:white; border-color:var(--cor-primaria); }
-    .app-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.08); }
+    .app-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid var(--borda); }
     .app-header h1 { font-size:24px; display:flex; align-items:center; gap:8px; }
     .user-email { font-size:14px; color:var(--texto-medio); display:block; margin-top:2px; }
     .logout-btn { background:none; border:none; color:var(--cor-secundaria); font-size:14px; cursor:pointer; }
@@ -140,7 +145,7 @@
     .tela-estrategia > * { position:relative; z-index:1; }
     .estrategia-motivo-icone { font-size:64px; text-align:center; margin:28px 0 20px; animation:estrategiaPulso 2.2s ease-in-out infinite; }
     @keyframes estrategiaPulso { 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.12); } }
-    .estrategia-dica { background:var(--bg-card); border-radius:16px; padding:16px 18px; font-size:15px; line-height:1.6; margin-bottom:18px; border:1px solid rgba(255,255,255,0.08); }
+    .estrategia-dica { background:var(--bg-card); border-radius:16px; padding:16px 18px; font-size:15px; line-height:1.6; margin-bottom:18px; border:1px solid var(--borda); }
     .estrategia-frase-usuario { font-style:italic; text-align:center; color:var(--texto-medio); margin-bottom:28px; font-size:15px; }
     .estrategia-confirmacao { display:flex; flex-direction:column; gap:12px; }
 
@@ -179,11 +184,11 @@
     .audio-upload { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
     .audio-upload .btn { flex:1; min-width:80px; margin-bottom:0; }
     .audio-upload input[type="file"] { display:none; }
-    .plan-badge { background:rgba(15,30,46,0.9); color:var(--texto-principal); border:1px solid rgba(255,255,255,0.15); padding:5px 12px; border-radius:50px; font-size:12px; display:inline-block; margin-top:4px; }
+    .plan-badge { background:var(--badge-bg); color:var(--texto-principal); border:1px solid var(--borda); padding:5px 12px; border-radius:50px; font-size:12px; display:inline-block; margin-top:4px; }
     .breath-circle { width:120px; height:120px; border-radius:50%; background:var(--cor-primaria); margin:20px auto; display:flex; align-items:center; justify-content:center; color:white; font-size:22px; font-weight:600; transition:all 0.8s ease; }
     .subapp-tela { display:none; }
     .subapp-tela.active { display:block; }
-    .variacao-btn { display:block; width:100%; margin:8px 0; padding:14px; border-radius:16px; border:1px solid rgba(255,255,255,0.18); background:var(--bg-card); color:var(--texto-principal); font-size:16px; cursor:pointer; }
+    .variacao-btn { display:block; width:100%; margin:8px 0; padding:14px; border-radius:16px; border:1px solid var(--borda); background:var(--bg-card); color:var(--texto-principal); font-size:16px; cursor:pointer; }
     .variacao-btn:hover { border-color:var(--cor-secundaria); }
     .foto-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
 
@@ -193,7 +198,7 @@
       background: color-mix(in srgb, var(--bg-card) 40%, transparent);
       backdrop-filter: blur(16px) saturate(150%);
       -webkit-backdrop-filter: blur(16px) saturate(150%);
-      border: 1px solid rgba(255,255,255,0.18);
+      border: 1px solid var(--borda);
       box-shadow: 0 8px 24px rgba(0,0,0,0.22);
       margin-bottom: 0;
     }
@@ -206,7 +211,7 @@
       background: color-mix(in srgb, var(--bg-card) 45%, transparent);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.22);
+      border: 1px solid var(--borda);
     }
     #screen-dashboard .stat-number {
       font-size: 29px;
@@ -248,7 +253,7 @@
       background: color-mix(in srgb, var(--cor-primaria) 38%, transparent);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.25);
+      border: 1px solid var(--borda);
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.35);
     }
@@ -259,7 +264,7 @@
       background: rgba(34,197,94,0.28);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.25);
+      border: 1px solid var(--borda);
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.35);
     }
@@ -270,7 +275,7 @@
       background: rgba(255,255,255,0.07);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(255,255,255,0.22);
+      border: 1px solid var(--borda);
       color: var(--texto-principal);
     }
     #screen-dashboard .btn-outline:hover {
@@ -279,18 +284,77 @@
     #screen-dashboard .btn-sm {
       font-size: 15px;
     }
-    .foto-thumb { width:100%; aspect-ratio:1/1; border-radius:16px; background:#1a2a40; border:2px dashed rgba(255,255,255,0.2); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--texto-fraco); cursor:pointer; overflow:hidden; background-size:cover; background-position:center; }
+    .foto-thumb { width:100%; aspect-ratio:1/1; border-radius:16px; background:var(--bg-thumb); border:2px dashed var(--borda); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--texto-fraco); cursor:pointer; overflow:hidden; background-size:cover; background-position:center; }
     .foto-thumb img { width:100%; height:100%; object-fit:cover; }
     .foto-thumb .remove { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.7); border-radius:50%; width:20px; height:20px; font-size:12px; color:white; border:none; cursor:pointer; }
     .respirar-fases { display:flex; gap:12px; justify-content:center; margin:16px 0; }
-    .respirar-fases span { padding:6px 16px; border-radius:30px; background:rgba(255,255,255,0.08); font-size:14px; }
+    .respirar-fases span { padding:6px 16px; border-radius:30px; background:var(--bg-chip-suave); font-size:14px; }
     .respirar-fases .ativo { background:var(--cor-primaria); color:white; }
-    .spinner { width:48px; height:48px; border:6px solid rgba(255,255,255,0.12); border-top:6px solid var(--cor-secundaria); border-radius:50%; animation:spin 1s linear infinite; margin:20px auto; }
+    .spinner { width:48px; height:48px; border:6px solid var(--borda); border-top:6px solid var(--cor-secundaria); border-radius:50%; animation:spin 1s linear infinite; margin:20px auto; }
     @keyframes spin { to { transform:rotate(360deg); } }
     @keyframes pisca { 0%,100%{opacity:1} 50%{opacity:0.3} }
     .pisca { animation:pisca 0.8s infinite; }
     #seletor-temas-mini button { border-radius:12px !important; cursor:pointer; transition:0.2s; text-shadow:0 2px 4px rgba(0,0,0,0.5); }
     #seletor-temas-mini button:hover { transform:scale(1.05); }
+
+    /* ===== TEMAS CLAROS (themeManager.js liga a classe tema-claro no <body>) ===== */
+    body.tema-claro .card { box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
+    body.tema-claro .btn-primary:hover { background: var(--cor-primaria); filter: brightness(0.9); }
+    body.tema-claro .btn-success { background: #15803d; }
+    body.tema-claro .btn-success:hover { background: #166534; }
+    body.tema-claro .btn-danger { background: #b91c1c; }
+    body.tema-claro .btn-danger:hover { background: #991b1b; }
+    body.tema-claro .btn-sos:hover { background: var(--cor-destaque); filter: brightness(0.9); }
+    body.tema-claro .logout-btn:hover { color: #b91c1c; }
+    /* dashboard: vidro claro e botões sólidos (o vidro escuro com texto branco some em fundo claro) */
+    body.tema-claro #screen-dashboard .card {
+      background: rgba(255,255,255,0.78);
+      background: color-mix(in srgb, var(--bg-card) 80%, transparent);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+    }
+    body.tema-claro #screen-dashboard .card:hover {
+      background: rgba(255,255,255,0.9);
+      background: color-mix(in srgb, var(--bg-card) 92%, transparent);
+    }
+    body.tema-claro #screen-dashboard .plan-badge {
+      background: rgba(255,255,255,0.8);
+      background: color-mix(in srgb, var(--bg-card) 82%, transparent);
+      color: var(--texto-principal);
+    }
+    body.tema-claro #screen-dashboard .stat-number { color: var(--cor-secundaria); text-shadow: none; }
+    body.tema-claro #screen-dashboard .stat-label { color: var(--texto-medio); opacity: 1; }
+    body.tema-claro #screen-dashboard .btn-sos,
+    body.tema-claro #screen-dashboard .btn-danger-sos,
+    body.tema-claro #screen-dashboard .btn-primary,
+    body.tema-claro #screen-dashboard .btn-success {
+      border: 1px solid transparent;
+      color: #fff;
+      text-shadow: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+    body.tema-claro #screen-dashboard .btn-sos { background: var(--cor-destaque); }
+    body.tema-claro #screen-dashboard .btn-danger-sos { background: #b91c1c; }
+    body.tema-claro #screen-dashboard .btn-primary { background: var(--cor-primaria); }
+    body.tema-claro #screen-dashboard .btn-success { background: #15803d; }
+    body.tema-claro #screen-dashboard .btn-sos:hover,
+    body.tema-claro #screen-dashboard .btn-danger-sos:hover,
+    body.tema-claro #screen-dashboard .btn-primary:hover,
+    body.tema-claro #screen-dashboard .btn-success:hover { filter: brightness(0.92); }
+    body.tema-claro #screen-dashboard .btn-sos:hover { background: var(--cor-destaque); }
+    body.tema-claro #screen-dashboard .btn-danger-sos:hover { background: #b91c1c; }
+    body.tema-claro #screen-dashboard .btn-primary:hover { background: var(--cor-primaria); }
+    body.tema-claro #screen-dashboard .btn-success:hover { background: #15803d; }
+    body.tema-claro #screen-dashboard .btn-outline {
+      background: rgba(255,255,255,0.6);
+      background: color-mix(in srgb, var(--bg-card) 70%, transparent);
+      color: var(--texto-principal);
+    }
+    body.tema-claro #screen-dashboard .btn-outline:hover {
+      background: rgba(255,255,255,0.85);
+      background: color-mix(in srgb, var(--bg-card) 90%, transparent);
+    }
   </style>
 </head>
 <body>
@@ -433,7 +497,7 @@
       <h2 style="font-size:18px;">🧠 Estratégias</h2>
       <button class="logout-btn" id="btn-strategies-back">Voltar</button>
     </div>
-    <div id="strategies-rodizio" style="display:flex; flex-direction:column; align-items:center; margin:12px 0; background:var(--bg-card); border-radius:20px; padding:16px; border:1px solid rgba(255,255,255,0.08);">
+    <div id="strategies-rodizio" style="display:flex; flex-direction:column; align-items:center; margin:12px 0; background:var(--bg-card); border-radius:20px; padding:16px; border:1px solid var(--borda);">
       <div id="strategies-foto" style="width:100%; max-width:200px; aspect-ratio:1/1; border-radius:20px; background:#1a2a40; background-size:cover; background-position:center; margin-bottom:8px;"></div>
       <p id="strategies-frase" style="font-size:16px; font-style:italic; color:var(--texto-medio); text-align:center;">"Sua frase motivacional"</p>
     </div>
