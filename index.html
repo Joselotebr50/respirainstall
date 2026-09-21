@@ -37,7 +37,7 @@
       --badge-bg: rgba(15,30,46,0.9);
     }
     html, body {
-      touch-action: manipulation; /* evita zoom por toque duplo, mas permite pinça (acessibilidade) */
+      touch-action: manipulation;
       font-family: 'Poppins', sans-serif;
       background: var(--bg-fundo);
       color: var(--texto-principal);
@@ -85,7 +85,8 @@
       opacity: 1;
       pointer-events: auto;
     }
-    /* Dashboard: cabeçalho fica fixo no topo; o espaçador abaixo empurra o resto pra baixo */
+    
+    /* Dashboard: cabeçalho fixo, espaçador invisível empurra o resto pra baixo */
     #screen-dashboard.active {
       display: flex !important;
       flex-direction: column;
@@ -126,7 +127,10 @@
     .card { background:var(--bg-card); border-radius:20px; padding:16px; margin-bottom:14px; border:1px solid var(--borda); cursor:pointer; transition:all .2s; }
     .card:hover { background:var(--hover-card); }
     .card-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start; }
-    .dashboard-spacer { height: 12vh; flex-shrink: 0; }
+    
+    /* 👇 AQUI ESTÁ A MÁGICA DO ESPAÇADOR INVISÍVEL (190px = h-48 do Tailwind) 👇 */
+    .dashboard-spacer { height: 190px; flex-shrink: 0; }
+    
     .stat-number { font-size:30px; font-weight:700; color:var(--cor-secundaria); }
     .stat-label { font-size:13px; color:var(--texto-medio); }
     .chip-group { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
@@ -139,7 +143,8 @@
     .logout-btn:hover { color:#ef4444; }
     .config-btn { background:none; border:none; color:var(--texto-medio); font-size:20px; cursor:pointer; margin-left:8px; }
     .config-btn:hover { color:var(--cor-secundaria); transform:rotate(30deg); transition:.3s; }
-    /* ===== TELAS DE ESTRATÉGIA (fundo temático + dica de execução) ===== */
+    
+    /* ===== TELAS DE ESTRATÉGIA ===== */
     .tela-estrategia { position:relative; overflow:hidden; margin:-20px -18px 0; padding:20px 18px 28px; min-height:100vh; min-height:100dvh; }
     .tela-estrategia::before { content:''; position:absolute; font-size:260px; line-height:1; opacity:0.10; pointer-events:none; z-index:0; }
     .tela-estrategia > * { position:relative; z-index:1; }
@@ -151,36 +156,27 @@
 
     .tema-caminhar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 35%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-caminhar::before { content:'👣'; top:-30px; right:-40px; transform:rotate(18deg); }
-
     .tema-apoio { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 32%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-apoio::before { content:'💬'; top:-20px; left:-40px; transform:rotate(-12deg); }
-
     .tema-chiclete { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 30%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-chiclete::before { content:'🍬'; top:-40px; right:-30px; transform:rotate(20deg); }
-
     .tema-banho { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 38%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-banho::before { content:'💧'; top:-30px; right:-20px; transform:rotate(8deg); }
-
     .tema-audio { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 30%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-audio::before { content:'🎵'; bottom:-40px; left:-30px; transform:rotate(-15deg); }
-
     .tema-sair { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-sair::before { content:'🚪'; top:-20px; right:-40px; transform:rotate(10deg); }
-
     .tema-adiar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-adiar::before { content:'⏳'; bottom:-30px; right:-30px; transform:rotate(-10deg); }
-
     .tema-alongar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 26%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-alongar::before { content:'🤸'; top:-30px; left:-30px; transform:rotate(-18deg); }
-
     .tema-motivo { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-destaque) 34%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-motivo::before { content:'💪'; bottom:-40px; right:-20px; transform:rotate(12deg); }
-
     .tema-agua { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-secundaria) 42%, var(--bg-fundo)), var(--bg-fundo) 70%); }
     .tema-agua::before { content:'💦'; top:-30px; left:-30px; transform:rotate(-10deg); }
-
     .tema-respirar { background:linear-gradient(160deg, color-mix(in srgb, var(--cor-primaria) 34%, var(--bg-fundo)), color-mix(in srgb, var(--cor-secundaria) 18%, var(--bg-fundo)) 70%); }
     .tema-respirar::before { content:'🌬️'; bottom:-30px; left:-30px; transform:rotate(8deg); }
+    
     .audio-upload { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
     .audio-upload .btn { flex:1; min-width:80px; margin-bottom:0; }
     .audio-upload input[type="file"] { display:none; }
@@ -192,9 +188,8 @@
     .variacao-btn:hover { border-color:var(--cor-secundaria); }
     .foto-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:12px 0; }
 
-    /* ===== GLASSMORPHISM: só na tela do dashboard ===== */
+    /* ===== LAYOUT EXATO DO DASHBOARD (GLASSMORPHISM) ===== */
     #screen-dashboard .card {
-      background: rgba(16,31,51,0.32);
       background: color-mix(in srgb, var(--bg-card) 40%, transparent);
       backdrop-filter: blur(16px) saturate(150%);
       -webkit-backdrop-filter: blur(16px) saturate(150%);
@@ -203,11 +198,9 @@
       margin-bottom: 0;
     }
     #screen-dashboard .card:hover {
-      background: rgba(21,39,64,0.42);
       background: color-mix(in srgb, var(--bg-card) 55%, transparent);
     }
     #screen-dashboard .plan-badge {
-      background: rgba(15,30,46,0.4);
       background: color-mix(in srgb, var(--bg-card) 45%, transparent);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
@@ -223,8 +216,9 @@
       color: var(--texto-principal);
       opacity: 0.82;
     }
+    
+    /* Botões do Dashboard (Efeito Vidro) */
     #screen-dashboard .btn-sos {
-      background: rgba(245,158,11,0.28);
       background: color-mix(in srgb, var(--cor-destaque) 38%, transparent);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -232,10 +226,10 @@
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.4);
       box-shadow: 0 8px 24px rgba(245,158,11,0.18);
+      margin-bottom: 0;
     }
-    #screen-dashboard .btn-sos:hover {
-      background: rgba(245,158,11,0.42);
-    }
+    #screen-dashboard .btn-sos:hover { background: color-mix(in srgb, var(--cor-destaque) 52%, transparent); }
+    
     #screen-dashboard .btn-danger-sos {
       background: rgba(220,38,38,0.28);
       backdrop-filter: blur(14px);
@@ -244,23 +238,39 @@
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.4);
       box-shadow: 0 8px 24px rgba(220,38,38,0.18);
+      margin-bottom: 0;
     }
-    #screen-dashboard .btn-danger-sos:hover {
-      background: rgba(220,38,38,0.42);
+    #screen-dashboard .btn-danger-sos:hover { background: rgba(220,38,38,0.42); }
+
+    /* Grids de botões do Dashboard */
+    .action-row, .nav-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: nowrap;
+      margin-bottom: 0;
     }
-    #screen-dashboard .btn-primary {
-      background: rgba(59,130,246,0.28);
-      background: color-mix(in srgb, var(--cor-primaria) 38%, transparent);
+    .action-row .btn, .nav-row .btn {
+      flex: 1;
+      margin-bottom: 0;
+      padding: 12px 6px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      border-radius: 16px;
+    }
+    .action-row .btn-outline, .nav-row .btn-outline {
+      background: color-mix(in srgb, var(--bg-card) 40%, transparent);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--borda);
-      color: #fff;
-      text-shadow: 0 1px 3px rgba(0,0,0,0.35);
+      color: var(--texto-principal);
     }
-    #screen-dashboard .btn-primary:hover {
-      background: rgba(59,130,246,0.42);
+    .action-row .btn-outline:hover, .nav-row .btn-outline:hover {
+      background: color-mix(in srgb, var(--bg-card) 60%, transparent);
     }
-    #screen-dashboard .btn-success {
+    .action-row .btn-success {
       background: rgba(34,197,94,0.28);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -268,22 +278,17 @@
       color: #fff;
       text-shadow: 0 1px 3px rgba(0,0,0,0.35);
     }
-    #screen-dashboard .btn-success:hover {
-      background: rgba(34,197,94,0.42);
-    }
-    #screen-dashboard .btn-outline {
-      background: rgba(255,255,255,0.07);
+    .action-row .btn-success:hover { background: rgba(34,197,94,0.42); }
+    #btn-play-motivational {
+      background: color-mix(in srgb, var(--bg-card) 40%, transparent);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--borda);
       color: var(--texto-principal);
+      margin-bottom: 0;
     }
-    #screen-dashboard .btn-outline:hover {
-      background: rgba(255,255,255,0.13);
-    }
-    #screen-dashboard .btn-sm {
-      font-size: 15px;
-    }
+    #btn-play-motivational:hover { background: color-mix(in srgb, var(--bg-card) 60%, transparent); }
+
     .foto-thumb { width:100%; aspect-ratio:1/1; border-radius:16px; background:var(--bg-thumb); border:2px dashed var(--borda); display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--texto-fraco); cursor:pointer; overflow:hidden; background-size:cover; background-position:center; }
     .foto-thumb img { width:100%; height:100%; object-fit:cover; }
     .foto-thumb .remove { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.7); border-radius:50%; width:20px; height:20px; font-size:12px; color:white; border:none; cursor:pointer; }
@@ -297,7 +302,7 @@
     #seletor-temas-mini button { border-radius:12px !important; cursor:pointer; transition:0.2s; text-shadow:0 2px 4px rgba(0,0,0,0.5); }
     #seletor-temas-mini button:hover { transform:scale(1.05); }
 
-    /* ===== TEMAS CLAROS (themeManager.js liga a classe tema-claro no <body>) ===== */
+    /* ===== TEMAS CLAROS ===== */
     body.tema-claro .card { box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
     body.tema-claro .btn-primary:hover { background: var(--cor-primaria); filter: brightness(0.9); }
     body.tema-claro .btn-success { background: #15803d; }
@@ -306,27 +311,28 @@
     body.tema-claro .btn-danger:hover { background: #991b1b; }
     body.tema-claro .btn-sos:hover { background: var(--cor-destaque); filter: brightness(0.9); }
     body.tema-claro .logout-btn:hover { color: #b91c1c; }
-    /* dashboard: vidro claro e botões sólidos (o vidro escuro com texto branco some em fundo claro) */
+    
+    /* Dashboard: vidro claro e botões sólidos */
     body.tema-claro #screen-dashboard .card {
-      background: rgba(255,255,255,0.78);
       background: color-mix(in srgb, var(--bg-card) 80%, transparent);
       box-shadow: 0 6px 20px rgba(0,0,0,0.10);
     }
     body.tema-claro #screen-dashboard .card:hover {
-      background: rgba(255,255,255,0.9);
       background: color-mix(in srgb, var(--bg-card) 92%, transparent);
     }
     body.tema-claro #screen-dashboard .plan-badge {
-      background: rgba(255,255,255,0.8);
       background: color-mix(in srgb, var(--bg-card) 82%, transparent);
       color: var(--texto-principal);
     }
     body.tema-claro #screen-dashboard .stat-number { color: var(--cor-secundaria); text-shadow: none; }
     body.tema-claro #screen-dashboard .stat-label { color: var(--texto-medio); opacity: 1; }
+    
     body.tema-claro #screen-dashboard .btn-sos,
     body.tema-claro #screen-dashboard .btn-danger-sos,
     body.tema-claro #screen-dashboard .btn-primary,
-    body.tema-claro #screen-dashboard .btn-success {
+    body.tema-claro #screen-dashboard .btn-success,
+    body.tema-claro .action-row .btn-success,
+    body.tema-claro #btn-play-motivational {
       border: 1px solid transparent;
       color: #fff;
       text-shadow: none;
@@ -338,34 +344,38 @@
     body.tema-claro #screen-dashboard .btn-danger-sos { background: #b91c1c; }
     body.tema-claro #screen-dashboard .btn-primary { background: var(--cor-primaria); }
     body.tema-claro #screen-dashboard .btn-success { background: #15803d; }
+    body.tema-claro .action-row .btn-success { background: #15803d; }
+    
     body.tema-claro #screen-dashboard .btn-sos:hover,
     body.tema-claro #screen-dashboard .btn-danger-sos:hover,
     body.tema-claro #screen-dashboard .btn-primary:hover,
-    body.tema-claro #screen-dashboard .btn-success:hover { filter: brightness(0.92); }
-    body.tema-claro #screen-dashboard .btn-sos:hover { background: var(--cor-destaque); }
-    body.tema-claro #screen-dashboard .btn-danger-sos:hover { background: #b91c1c; }
-    body.tema-claro #screen-dashboard .btn-primary:hover { background: var(--cor-primaria); }
-    body.tema-claro #screen-dashboard .btn-success:hover { background: #15803d; }
-    body.tema-claro #screen-dashboard .btn-outline {
-      background: rgba(255,255,255,0.6);
+    body.tema-claro #screen-dashboard .btn-success:hover,
+    body.tema-claro .action-row .btn-success:hover { filter: brightness(0.92); }
+    
+    body.tema-claro #screen-dashboard .btn-outline,
+    body.tema-claro .action-row .btn-outline,
+    body.tema-claro .nav-row .btn-outline,
+    body.tema-claro #btn-play-motivational {
       background: color-mix(in srgb, var(--bg-card) 70%, transparent);
       color: var(--texto-principal);
     }
-    body.tema-claro #screen-dashboard .btn-outline:hover {
-      background: rgba(255,255,255,0.85);
+    body.tema-claro #screen-dashboard .btn-outline:hover,
+    body.tema-claro .action-row .btn-outline:hover,
+    body.tema-claro .nav-row .btn-outline:hover,
+    body.tema-claro #btn-play-motivational:hover {
       background: color-mix(in srgb, var(--bg-card) 90%, transparent);
     }
   </style>
 </head>
 <body>
 <div id="root">
-  <!-- LOADING (visível inicialmente) -->
+  <!-- LOADING -->
   <div id="screen-loading" class="screen active">
     <div class="spinner"></div>
     <p style="text-align:center; color:var(--texto-fraco);">Carregando...</p>
   </div>
 
-  <!-- LOGIN (oculta) -->
+  <!-- LOGIN -->
   <div id="screen-login" class="screen">
     <h1 style="text-align:center;">🚭 Respira</h1>
     <p style="text-align:center; color:var(--texto-medio);">Apoio diário para parar de fumar</p>
@@ -385,7 +395,7 @@
     </div>
   </div>
 
-  <!-- ONBOARDING (oculta) -->
+  <!-- ONBOARDING -->
   <div id="screen-onboarding" class="screen">
     <div class="app-header" style="border-bottom:none; margin-bottom:8px;">
       <h2 style="font-size:20px;">👋 Vamos começar</h2>
@@ -394,7 +404,6 @@
     <p class="subtitle">Escolha seu tema primeiro</p>
     <div id="onboarding-tema" style="margin-bottom:16px;">
       <div id="seletor-temas-mini" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px;"></div>
-      <!-- AJUSTE REMOVIDO -->
     </div>
     <div id="onboarding-perguntas">
       <label>Quantos cigarros por dia?</label>
@@ -449,11 +458,12 @@
     <p id="onboarding-message" style="color:#ef4444; font-size:14px; text-align:center; margin-top:8px;"></p>
   </div>
 
-  <!-- DASHBOARD (oculta) -->
+  <!-- 👇 DASHBOARD (LAYOUT APLICADO EXATAMENTE COMO SOLICITADO) 👇 -->
   <div id="screen-dashboard" class="screen">
-    <div class="app-header">
+    <!-- Header -->
+    <div class="app-header" style="border-bottom: none; margin-bottom: 4px;">
       <div>
-        <h1>🚭 Respira</h1>
+        <h1 style="color: var(--cor-secundaria);">🚭 Respira</h1>
         <span class="user-email" id="user-email"></span>
         <span class="plan-badge" id="plan-badge">Plano: Ativo</span>
       </div>
@@ -462,7 +472,11 @@
         <button class="logout-btn" id="btn-logout">Sair</button>
       </div>
     </div>
+
+    <!-- ESPAÇADOR INVISÍVEL (Mantém a arte do fundo visível e os botões na posição exata) -->
     <div class="dashboard-spacer"></div>
+
+    <!-- Banner de Instalação -->
     <div id="install-banner" style="display:none; align-items:center; justify-content:space-between; gap:10px; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:12px; padding:10px 14px;">
       <span style="font-size:14px;">📲 Instale o Respira no seu celular</span>
       <div style="display:flex; gap:6px; align-items:center;">
@@ -470,28 +484,41 @@
         <button id="btn-dismiss-install" title="Fechar" style="background:none; border:none; color:var(--texto-medio); font-size:18px; cursor:pointer; padding:4px;">✕</button>
       </div>
     </div>
+
+    <!-- Estatísticas (Efeito Vidro) -->
     <div class="card-grid">
       <div class="card"><div class="stat-number" id="dash-days">0</div><div class="stat-label">Dias sem fumar</div></div>
       <div class="card"><div class="stat-number" id="dash-money">R$ 0</div><div class="stat-label">Economizados</div></div>
     </div>
-    <div class="card"><div class="stat-number" id="dash-cigarettes-avoided">0</div><div class="stat-label">Cigarros não fumados</div></div>
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      <button class="btn btn-sos" id="btn-sos-strategies">🔥 Estou com vontade</button>
-      <button class="btn btn-danger-sos" id="btn-sos-emergencia">🆘 SOS - Respire agora</button>
+    <div class="card" style="margin-bottom: 12px;">
+      <div class="stat-number" id="dash-cigarettes-avoided">0</div>
+      <div class="stat-label">Cigarros não fumados</div>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
-      <button class="btn btn-primary btn-sm" id="btn-register-cigarette" style="flex:1;">🚬 Fumei</button>
-      <button class="btn btn-success btn-sm" id="btn-register-craving" style="flex:1;">💪 Venci fissura</button>
-      <button class="btn btn-outline btn-sm" id="btn-relapse" style="flex:1; border-color:#ef4444; color:#ef4444;">⚠️ Recaída</button>
+
+    <!-- Botões Principais de Ação (SOS) -->
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom: 4px;">
+      <button class="btn btn-sos" id="btn-sos-strategies">🔥 Estou com vontade de fumar</button>
+      <button class="btn btn-danger-sos" id="btn-sos-emergencia" style="font-size: 16px; padding: 14px;">🆘 SOS - Respire agora</button>
     </div>
-    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+
+    <!-- Ações Rápidas (3 colunas) -->
+    <div class="action-row">
+      <button class="btn btn-outline btn-sm" id="btn-register-cigarette">🚬 Fumei</button>
+      <button class="btn btn-success btn-sm" id="btn-register-craving">💪 Venci fissura</button>
+      <button class="btn btn-outline btn-sm" id="btn-relapse" style="border-color:#ef4444; color:#ef4444;">⚠️ Recaída</button>
+    </div>
+
+    <!-- Navegação (2 colunas) -->
+    <div class="nav-row">
       <button class="btn btn-outline btn-sm" id="btn-go-lessons">📚 Lições</button>
       <button class="btn btn-outline btn-sm" id="btn-go-history">📊 Histórico</button>
-      <button class="btn btn-outline btn-sm" id="btn-play-motivational">🎧 Áudio</button>
     </div>
+    
+    <!-- Áudio (1 coluna) -->
+    <button class="btn btn-outline btn-sm" id="btn-play-motivational" style="width: 100%;">🎧 Ouvir áudio</button>
   </div>
 
-  <!-- ESTRATÉGIAS (oculta) -->
+  <!-- ESTRATÉGIAS -->
   <div id="screen-strategies" class="screen">
     <div class="app-header">
       <h2 style="font-size:18px;">🧠 Estratégias</h2>
@@ -505,7 +532,7 @@
     <div id="strategies-list"></div>
   </div>
 
-  <!-- SUBAPP ÁGUA (oculta) -->
+  <!-- SUBAPP ÁGUA -->
   <div id="screen-agua" class="screen tela-estrategia tema-agua">
     <div class="app-header">
       <h2 style="font-size:18px;">💧 Beber Água</h2>
@@ -550,7 +577,7 @@
     </div>
   </div>
 
-  <!-- RESPIRAÇÃO (oculta) -->
+  <!-- RESPIRAÇÃO -->
   <div id="screen-respiracao" class="screen tela-estrategia tema-respirar">
     <div class="app-header">
       <h2 style="font-size:18px;">🧘 Respire comigo</h2>
@@ -572,7 +599,7 @@
     </div>
   </div>
 
-  <!-- TELAS DE ESTRATÉGIA (uma por estratégia simples, fundo e conteúdo sob medida) -->
+  <!-- TELAS DE ESTRATÉGIA -->
   <div id="screen-estrategia-caminhar" class="screen tela-estrategia tema-caminhar">
     <div class="app-header">
       <h2 style="font-size:18px;">🚶 Caminhar</h2>
@@ -699,7 +726,7 @@
     </div>
   </div>
 
-  <!-- REGISTROS (Fumei, Venci fissura, Recaída) -->
+  <!-- REGISTROS -->
   <div id="screen-register-cigarette" class="screen">
     <h2>🚬 Registrar cigarro</h2>
     <label>Contexto</label><input type="text" id="cig-context" placeholder="Ex: café, estresse..." />
@@ -713,10 +740,7 @@
     <label>Gatilho</label><input type="text" id="craving-trigger" />
     <label>Intensidade (0-10)</label><input type="number" id="craving-intensity" min="0" max="10" value="6" />
     <label>Estratégia</label>
-    <select id="craving-strategy">
-      <!-- Preenchido em tempo de execução por app.js, a partir da lista única de
-           estratégias em strategies.js (fonte única, sem duplicação). -->
-    </select>
+    <select id="craving-strategy"></select>
     <button class="btn btn-success" id="btn-save-craving">Registrar</button>
     <button class="btn btn-outline" id="btn-cancel-craving">Cancelar</button>
   </div>
@@ -742,8 +766,6 @@
     <div id="history-content"><p>Carregando...</p></div>
     <button class="btn btn-outline" id="btn-history-back">Voltar</button>
   </div>
-
-  <!-- (overlay antigo de confirmação removido — substituído pelas telas de estratégia dedicadas) -->
 </div>
 
 <!-- FIREBASE SDK -->
@@ -754,7 +776,7 @@
 <!-- MÓDULO PRINCIPAL -->
 <script type="module" src="js/app.js"></script>
 <script>
-  // PWA: registra o Service Worker (cache do app shell + funcionamento offline)
+  // PWA: registra o Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./service-worker.js').catch((e) => {
